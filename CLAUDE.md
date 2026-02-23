@@ -83,3 +83,7 @@ Provide widgets to allow user to:
 ### Bottom right info pane
 
 Display the name of composer, work name, dates and description.
+
+## Engineering
+
+Refer to CLAUDE_engineering.md

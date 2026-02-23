@@ -26,15 +26,16 @@ As an example of this type of one-page Web app, refer to the `BibileProjector` p
 - Source: https://github.com/weipingc/bibleProjector
 - Running app instance: https://bibleprojectorpage.github.io/ 
 
-The `BibileProjector` app used [Polymer](http://polymer-project.org/) version 1.0, don't use the same technoligies and libraries,
+The `BibileProjector` app used [Polymer](http://polymer-project.org/) version 1.0, don't use the same technologies and libraries,
 since they pretty old, but please use similar modern stuff.
 
 ## Configuration
 
 Allow configuration via parameters:
 
-- For lyrics displayed above the current line: the cololr of text and background;
-- For lyrics displayed below the current line: the cololr of text and background.
+- For the current line of lyrics (Currently playing): The color of text and background;
+- For lyrics displayed above the current line: The number lyrics line, the color of text and background;
+- For lyrics displayed below the current line: The number lyrics line, the color of text and background.
 
 ## Layout of User Interface
 

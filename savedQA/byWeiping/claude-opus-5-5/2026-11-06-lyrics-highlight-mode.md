@@ -151,3 +151,23 @@ Verified in Chrome: computed opacity before/after = 0.9, distant = 0.28, current
 Brightened the default `--lyrics-above-color` and `--lyrics-below-color` from **#6e8199** (110,129,153) to **#7f94b0** (127,148,176), about 15% brighter with the same blue-gray hue. Opacity stays at 0.9. URL params `above-color` / `below-color` still override these defaults.
 
 Verified in Chrome: before/after lines computed `rgb(127, 148, 176)` at opacity 0.9.
+
+---
+
+## Ask
+
+> reduce the prominence of the currently selected control buttons of lyrics and maximizing (do not use yellowish color)
+
+## Response
+
+Changed the shared pressed style `.ctrl-btn.active` (used by Lyrics Auto/Manual and Maximize/Restore) from gold accent to neutral gray:
+
+| Property     | Before                  | After                               |
+|--------------|-------------------------|-------------------------------------|
+| text         | `--accent` #c9a227 gold | `--text-primary` #e6edf3 light gray |
+| border       | `--accent` #c9a227 gold | `--text-muted` #484f58 mid gray     |
+| background   | `--nav-active` #1f2937  | unchanged                           |
+
+Selected button now reads as a slightly lighter, filled slate button next to the unselected ones (gray text #8b949e, dark border #21262d). Hovering a selected button keeps the gray border.
+
+Verified in Chrome: Manual and Restore computed `rgb(230,237,243)` text, `rgb(72,79,88)` border, `rgb(31,41,55)` background; Auto unchanged.

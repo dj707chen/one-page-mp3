@@ -127,3 +127,27 @@ Verified in Chrome (Chapter 1, same viewport):
 - Maximized: 19 lines visible before and after; line box 69→68px / current 78→77px.
 
 Caveat: long single-line lyrics (Chapters 2–8) wrap sooner at the larger font, so those chapters show fewer lyric entries per screen; short-line lyrics (like the reworked Chapter 1) are unaffected.
+
+---
+
+## Ask
+
+> Slightly increase the brightness of the lyrics lines before and after the highlighted line
+
+## Response
+
+Raised the opacity of `.lyric-line.before` and `.lyric-line.after` (the 4 lines above / below the current line) from **0.75 → 0.9**, about 17% brighter on the dark background. Colors are unchanged and still configurable via `above-color` / `below-color` URL params. Lines farther away (`.distant`, opacity 0.28) are unchanged, so the fade-out beyond ±4 lines remains.
+
+Verified in Chrome: computed opacity before/after = 0.9, distant = 0.28, current = 1.
+
+---
+
+## Ask
+
+> Opacity is good, now slightly increase the brightness of the color of the lines before and after highlighted one
+
+## Response
+
+Brightened the default `--lyrics-above-color` and `--lyrics-below-color` from **#6e8199** (110,129,153) to **#7f94b0** (127,148,176), about 15% brighter with the same blue-gray hue. Opacity stays at 0.9. URL params `above-color` / `below-color` still override these defaults.
+
+Verified in Chrome: before/after lines computed `rgb(127, 148, 176)` at opacity 0.9.

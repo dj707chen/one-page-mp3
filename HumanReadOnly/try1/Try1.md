@@ -9,7 +9,7 @@ cd ~
 mkdir sharing
 cd sharing
 gh repo clone dj707chen/one-page-mp3
-cd one-page-mp3
+cd x
 
 claude
 ```

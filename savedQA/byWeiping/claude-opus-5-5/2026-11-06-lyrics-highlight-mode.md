@@ -100,3 +100,30 @@ Implementation notes:
 - `.ctrl-btn.active` pressed style is now shared by the mode toggle and the maximize button.
 
 Verified in Chrome: maximize hides nav + info panes, right pane spans full width, fonts 30.4px / 25.6px, current line centered (0px offset); Restore brings back 280px nav and 100px info pane, fonts 19.2px, still centered. No console errors.
+
+---
+
+## Ask
+
+> Reduce the height of the space between the lyrics lines, keep the same lines being displayed, increase the font size to use the space
+
+## Response
+
+Cut the vertical whitespace per lyric line and grew the font so each line's box keeps its old height (same number of lines on screen).
+
+| `.lyric-line`         | Before        | After         |
+|-----------------------|---------------|---------------|
+| padding (vertical)    | 10px          | 4px           |
+| line-height           | 1.9           | 1.4           |
+| font (normal)         | 1.05rem       | 1.95rem       |
+| font (normal, current)| 1.2rem        | 2.15rem       |
+| font (maximized)      | 1.6rem        | 2.7rem        |
+| font (max, current)   | 1.9rem        | 3.1rem        |
+
+Font sizes solved from: box height = font-size × 1.4 + 8px = old box height.
+
+Verified in Chrome (Chapter 1, same viewport):
+- Normal: 23 lines visible before and after; line box 52px / current 56px both before and after.
+- Maximized: 19 lines visible before and after; line box 69→68px / current 78→77px.
+
+Caveat: long single-line lyrics (Chapters 2–8) wrap sooner at the larger font, so those chapters show fewer lyric entries per screen; short-line lyrics (like the reworked Chapter 1) are unaffected.

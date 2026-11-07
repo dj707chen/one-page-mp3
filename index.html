@@ -371,6 +371,40 @@
       text-align: right;
     }
 
+    /* ─── Lyrics highlight mode toggle ─── */
+    #mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    #mode-toggle-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-right: 2px;
+    }
+
+    /* Pressed state for toggle buttons (highlight mode, maximize) */
+    .ctrl-btn.active {
+      background: var(--nav-active);
+      color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    #manual-hint {
+      position: absolute;
+      right: 14px;
+      bottom: 10px;
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      background: rgba(0,0,0,0.45);
+      padding: 3px 10px;
+      border-radius: 12px;
+      pointer-events: none;
+      z-index: 5;
+    }
+
     /* ─── Info Pane ─── */
     #info-pane {
       display: flex;
@@ -411,6 +445,15 @@
       flex: 1;
     }
 
+    /* ─── Maximized lyrics panel: hide nav + info panes, enlarge lyrics ─── */
+    #app.lyrics-maximized { grid-template-columns: 1fr; }
+    #app.lyrics-maximized #left-pane,
+    #app.lyrics-maximized #info-pane { display: none; }
+    #app.lyrics-maximized #right-pane { grid-template-rows: auto 1fr auto; }
+    #app.lyrics-maximized .lyric-meta { font-size: 1rem; }
+    #app.lyrics-maximized .lyric-line { font-size: 1.6rem; }
+    #app.lyrics-maximized .lyric-line.current { font-size: 1.9rem; }
+
     /* Scrollbar */
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -441,10 +484,16 @@
     <!-- Top control section -->
     <div id="top-controls">
       <button class="ctrl-btn" id="btn-prev">&#9664; Prev</button>
+      <div id="mode-toggle" role="group" aria-label="Lyrics highlight mode">
+        <span id="mode-toggle-label">Lyrics:</span>
+        <button class="ctrl-btn" data-mode="auto"   title="Highlight follows audio playback">Auto</button>
+        <button class="ctrl-btn" data-mode="manual" title="Operator advances lyrics: &darr; / &rarr; next, &uarr; / &larr; back">Manual</button>
+      </div>
       <div id="now-playing">
         <span id="np-label"></span>
         <span id="np-title">Select a movement to begin</span>
       </div>
+      <button class="ctrl-btn" id="btn-maximize" title="Maximize lyrics panel" aria-pressed="false">&#x2922; Maximize</button>
       <button class="ctrl-btn" id="btn-next">Next &#9654;</button>
     </div>
 
@@ -455,6 +504,7 @@
         <img id="thumbnail-img" src="" alt="">
         <div id="thumbnail-play-hint">&#9654; Click to play</div>
       </div>
+      <div id="manual-hint" hidden>Manual &middot; &darr; / &rarr; next &middot; &uarr; / &larr; back</div>
       <div id="lyrics-container">
         <div id="lyrics-inner">
           <div class="lyrics-spacer"></div>
@@ -525,10 +575,65 @@ const APP_DATA = {
               audio: "assets/AnlunHuang/ChineseRequiem/Chapter1.mp3",
               thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter1.jpg",
               lyrics: [
-                { text: "求主赐他们永远安息，安息在您怀里!" },
-                { text: "唯有耶和华所亲爱的，必让他们安睡。" },
-                { text: "阳光永温煦地照耀，轻风常吹拂地爱抚，花香弥漫发放芳馨，天使歌咏轻快活泼。" },
-                { text: "求主赐他们永远安息，安息在您怀里！" }
+                { text: "求主" },
+                { text: "赐他们永远" },
+                { text: "永远安息，" },
+                { text: "安息在您怀里!" },
+                { text: "安息在您怀里。" },
+
+                { text: "求主" },
+                { text: "赐他们永远" },
+                { text: "永远安息，" },
+                { text: "安息在您怀里!" },
+                { text: "求主赐他们永远" },
+                { text: "安息，永远安息，" },
+                { text: "安息在您怀里!" },
+                { text: "安息在您怀里。" },
+
+                { text: "唯有耶和华所亲爱的,(女)" },
+                { text: "唯有耶和华所亲爱的;" },
+                { text: "唯有耶和华所亲爱的,(男)" },
+                { text: "唯有耶和华所亲爱的;" },
+                { text: "唯有耶和华所亲爱的,(女)" },
+                { text: "唯有耶和华所亲爱的;" },
+                { text: "唯有耶和华所亲爱的,(男)" },
+                { text: "唯有耶和华所亲爱的;" },
+                { text: "必让他们安睡。" },
+                { text: "必让他们安睡，" },
+                { text: "让他们都安睡。" },
+                { text: "唯有耶和华所亲爱的，" },
+                { text: "必让他们都安睡。" },
+
+                { text: "阳光-" },
+                { text: "阳光永温煦地照耀，" },
+                { text: "轻风常吹拂地爱抚，" },
+                { text: "轻风-" },
+                { text: "轻风，" },
+                { text: "阳光永温煦地照耀，" },
+                { text: "轻风常吹拂地爱抚," },
+                { text: "花香-" },
+                { text: "花香弥漫发放芳馨，" },
+                { text: "天使歌咏轻快活泼。" },
+                { text: "天使-" },
+                { text: "天使，" },
+                { text: "花香弥漫发放芳馨，" },
+                { text: "天使歌咏轻快活泼。" },
+                { text: "求主赐他们永远，" },
+                { text: "永远安息在您怀里！" },
+                { text: "求主赐他们永远，" },
+                { text: "永远安息在您怀里！" },
+                { text: "求主赐他们安息，" },
+                { text: "求主赐他们安息。" },
+
+                { text: "安息在您怀里，" },
+                { text: "安息。" },
+                { text: "安息在您怀里。" },
+
+                { text: "求主" },
+                { text: "赐他们永远" },
+                { text: "永远安息，" },
+                { text: "安息在您怀里！" },
+                { text: "安息在您怀里。" }
               ]
             },
             {
@@ -639,6 +744,7 @@ const APP_DATA = {
 /* ================================================================
    CONFIGURATION — apply URL params to CSS custom properties
    Example: index.html?above-color=%238888aa&below-bg=rgba(0,0,0,0.2)
+   Lyrics highlight mode: index.html?highlight-mode=auto  (default: manual)
 ================================================================ */
 (function applyConfig() {
   const params = new URLSearchParams(window.location.search);
@@ -663,7 +769,9 @@ const state = {
   movementIdx:  null,
   isPlaying:    false,
   lastLyricIdx: -1,
-  allMovements: []  // flat list for prev/next
+  allMovements: [],  // flat list for prev/next
+  highlightMode: new URLSearchParams(window.location.search).get('highlight-mode') === 'auto'
+                 ? 'auto' : 'manual'
 };
 
 const audio = document.getElementById('audio');
@@ -835,9 +943,12 @@ function renderLyrics(movement) {
       el.className = 'lyric-line';
       el.dataset.index = idx;
       el.textContent = lyric.text;
-      // If line has a timestamp, clicking seeks there
+      // Manual mode: clicking jumps the highlight to this line.
+      // Auto mode: if line has a timestamp, clicking seeks there.
       el.addEventListener('click', () => {
-        if (lyric.time !== undefined) {
+        if (state.highlightMode === 'manual') {
+          highlightLyricLine(idx);
+        } else if (lyric.time !== undefined) {
           audio.currentTime = lyric.time;
         }
       });
@@ -849,14 +960,15 @@ function renderLyrics(movement) {
   bottomSpacer.className = 'lyrics-spacer';
   inner.appendChild(bottomSpacer);
 
-  highlightLyricLine(0);
+  // Manual mode starts with no line highlighted; the first key press highlights line 0
+  highlightLyricLine(state.highlightMode === 'manual' ? -1 : 0, true);
 }
 
 /* ================================================================
-   HIGHLIGHT LYRIC LINE
+   HIGHLIGHT LYRIC LINE   (idx -1 = nothing highlighted yet)
 ================================================================ */
-function highlightLyricLine(idx) {
-  if (idx === state.lastLyricIdx) return;
+function highlightLyricLine(idx, force = false) {
+  if (idx === state.lastLyricIdx && !force) return;
   state.lastLyricIdx = idx;
 
   const lines = document.querySelectorAll('.lyric-line');
@@ -868,7 +980,11 @@ function highlightLyricLine(idx) {
     else                   el.classList.add(diff <= 4 ? 'after' : 'distant');
   });
 
-  // Scroll the current line to vertical center of container
+  centerCurrentLine();
+}
+
+// Scroll the current line to vertical center of container (top if none)
+function centerCurrentLine() {
   const currentEl = document.querySelector('.lyric-line.current');
   const container = document.getElementById('lyrics-container');
   if (currentEl && container) {
@@ -877,8 +993,63 @@ function highlightLyricLine(idx) {
     const desired = container.scrollTop + (eRect.top - cRect.top)
                     - cRect.height / 2 + eRect.height / 2;
     container.scrollTo({ top: desired, behavior: 'smooth' });
+  } else if (container) {
+    container.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
+
+/* ================================================================
+   LYRICS HIGHLIGHT MODE
+   auto:   current line follows audio time (timestamps or interpolation)
+   manual: operator moves the highlight with the keyboard (see KEYBOARD
+           SHORTCUTS) or by clicking a line; audio time is ignored
+================================================================ */
+function setHighlightMode(mode) {
+  state.highlightMode = mode;
+  document.querySelectorAll('#mode-toggle .ctrl-btn').forEach(btn => {
+    const on = btn.dataset.mode === mode;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-pressed', on);
+  });
+  document.getElementById('manual-hint').hidden = mode !== 'manual';
+
+  // Back to auto: resync the highlight to the audio position
+  if (mode === 'auto' && state.composerIdx !== null) {
+    highlightLyricLine(getCurrentLyricIdx());
+  }
+}
+
+function stepLyricLine(delta) {
+  const movement = currentMovement();
+  if (!movement || !movement.lyrics || movement.lyrics.length === 0) return;
+  const idx = Math.max(-1, Math.min(movement.lyrics.length - 1, state.lastLyricIdx + delta));
+  highlightLyricLine(idx);
+  // Lyrics may be driven without audio (e.g. live singing) — don't leave them hidden
+  document.getElementById('thumbnail-overlay').classList.add('hidden');
+}
+
+document.querySelectorAll('#mode-toggle .ctrl-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setHighlightMode(btn.dataset.mode);
+    btn.blur();  // so Space doesn't re-activate the button
+  });
+});
+
+/* ================================================================
+   MAXIMIZE LYRICS PANEL
+   Hides the left nav pane and the info pane; lyrics font grows (CSS)
+================================================================ */
+document.getElementById('btn-maximize').addEventListener('click', e => {
+  const btn = e.currentTarget;
+  const on  = document.getElementById('app').classList.toggle('lyrics-maximized');
+  btn.classList.toggle('active', on);
+  btn.setAttribute('aria-pressed', on);
+  btn.innerHTML = on ? '&#x2921; Restore' : '&#x2922; Maximize';
+  btn.title     = on ? 'Restore normal layout' : 'Maximize lyrics panel';
+  btn.blur();
+  // Re-center after the lyric font-size transition (0.3s) settles
+  setTimeout(centerCurrentLine, 350);
+});
 
 /* ================================================================
    COMPUTE CURRENT LYRIC INDEX from audio time
@@ -918,7 +1089,7 @@ audio.addEventListener('timeupdate', () => {
     setTimeDisplay(audio.currentTime, audio.duration);
   }
 
-  if (state.composerIdx !== null) {
+  if (state.composerIdx !== null && state.highlightMode === 'auto') {
     highlightLyricLine(getCurrentLyricIdx());
   }
 });
@@ -967,6 +1138,7 @@ document.getElementById('btn-play-pause').addEventListener('click', () => {
 
 document.getElementById('btn-rewind-start').addEventListener('click', () => {
   audio.currentTime = 0;
+  if (state.highlightMode === 'manual') highlightLyricLine(-1);
 });
 
 document.getElementById('btn-rewind-15').addEventListener('click', () => {
@@ -1007,12 +1179,30 @@ document.getElementById('btn-next').addEventListener('click', () => {
 
 /* ================================================================
    KEYBOARD SHORTCUTS
-   Space:       Play / Pause
-   Left/Right:  ±5 seconds
-   Shift+Left/Right: ±15 seconds
+   Both modes:
+     Space:            Play / Pause
+   Auto mode:
+     Left/Right:       ±5 seconds
+     Shift+Left/Right: ±15 seconds
+   Manual mode:
+     Down / Right:     highlight next lyric line
+     Up / Left:        highlight previous lyric line
 ================================================================ */
+const MANUAL_KEYS = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 };
+
 document.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+  const t = e.target;
+  // Range inputs (progress bar) keep focus after dragging; don't let them swallow keys
+  if (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type !== 'range')) return;
+
+  if (state.highlightMode === 'manual' && e.code in MANUAL_KEYS) {
+    if (!e.metaKey && !e.ctrlKey && !e.altKey) {
+      e.preventDefault();
+      if (!e.repeat) stepLyricLine(MANUAL_KEYS[e.code]);  // holding a key advances one line only
+    }
+    return;
+  }
+
   switch (e.code) {
     case 'Space':
       e.preventDefault();
@@ -1079,6 +1269,7 @@ function escHtml(str) {
 buildFlatList();
 buildTree();
 updateNavButtons();
+setHighlightMode(state.highlightMode);
 </script>
 </body>
 </html>

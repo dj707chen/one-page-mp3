@@ -68,3 +68,39 @@ MP3, Load, Clear, rejecting an invalid file, and a `file://` page (fetch blocked
 
 Note: Python's `http.server` doesn't support HTTP Range requests, so the audio can't seek when the app is served that way.
 The Auto-mode checks were run on a range-capable server.
+
+---
+
+## Ask
+
+> export the lyrics timing data from localStorage to the same directory as the mp3 file
+
+## Response
+
+The recordings are in the browser's localStorage, which only the page can read, and a web page can write files only
+into a folder the user picks. So I added a full-width **Export N to MP3 folders** button under Rec / Save / Load / Clear
+(N = how many movements have timing kept in this browser; the button is disabled when N is 0).
+
+Clicking it:
+
+1. Opens a folder picker (Chrome / Edge). Pick the **app folder** (the one containing `index.html`). Picking the MP3
+   folder itself (e.g. `assets/AnlunHuang/ChineseRequiem`) also works. The folder is remembered for the rest of the session.
+2. For every movement with timing in localStorage, writes `ChapterN.timing.json` into the folder of `ChapterN.mp3`.
+   As a check, it writes only where it actually finds that MP3.
+3. Shows a summary of the files written and any it couldn't write. If nothing was written (wrong folder), the folder is
+   forgotten so the next click asks again.
+
+In Firefox / Safari (no folder access) the files are downloaded instead, to be moved next to the MP3s by hand.
+
+Once exported, the files are picked up automatically when the app is served over http. localStorage still takes
+precedence in this browser (use **Clear** to fall back to the file).
+
+### Verification
+
+Headless Chrome, with the folder picker standing in for Chrome's private test file system laid out like `assets/…`:
+- 3 stored timings, Chapter2.mp3 missing → 2 files written next to their MP3s, 1 reported.
+- The second export reuses the folder.
+- Picking the MP3 folder itself works.
+- Picking the wrong folder → nothing written, and the folder is forgotten.
+- Cancelling the picker → no message.
+- No-folder-access fallback → 3 downloads.

@@ -178,6 +178,7 @@
     }
 
     #timing-buttons .ctrl-btn { padding: 5px 4px; font-size: 0.74rem; }
+    #timing-buttons #btn-timing-export { grid-column: 1 / -1; }
 
     #btn-record.recording,
     #btn-record.recording:hover {
@@ -522,11 +523,13 @@
       <div id="timing-buttons">
         <button class="ctrl-btn" id="btn-record"       aria-pressed="false"
                 title="Record: while the audio plays, each line you advance to in manual mode gets the current audio time">&#9679; Rec</button>
-        <button class="ctrl-btn" id="btn-timing-save"  title="Save this movement's timing to a .timing.json file (put it next to the MP3)">Save</button>
-        <button class="ctrl-btn" id="btn-timing-load"  title="Load .timing.json file(s)">Load</button>
+        <button class="ctrl-btn" id="btn-timing-save"  title="Save this movement's timing to a .timing.js file (put it next to the MP3)">Save</button>
+        <button class="ctrl-btn" id="btn-timing-load"  title="Load .timing.js (or older .timing.json) file(s)">Load</button>
         <button class="ctrl-btn" id="btn-timing-clear" title="Discard the timing recorded in this browser for this movement">Clear</button>
+        <button class="ctrl-btn" id="btn-timing-export"
+                title="Write every timing kept in this browser next to its MP3 as .timing.js. Pick the app folder (the one with index.html) or the MP3 folder.">Export to MP3 folders</button>
       </div>
-      <input type="file" id="timing-file-input" accept=".json,application/json" multiple hidden>
+      <input type="file" id="timing-file-input" accept=".js,.json" multiple hidden>
     </div>
   </aside>
 
@@ -629,6 +632,7 @@ const APP_DATA = {
               audio: "assets/AnlunHuang/ChineseRequiem/Chapter1.mp3",
               thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter1.jpg",
               lyrics: [
+                { text: " ( Prayerfully 以祷告的心 ) " },
                 { text: "求主" },
                 { text: "赐他们永远" },
                 { text: "永远安息，" },
@@ -1279,16 +1283,21 @@ function getCurrentLyricIdx() {
           plays, each line the operator advances to (key or click) gets
           the current audio time as its start time. Moving back is a
           correction and records nothing; advancing again overwrites.
-   Save:  writes the current movement's timing to <audio>.timing.json
-   Load:  reads .timing.json file(s); each names its own movement
+   Save:  writes the current movement's timing to <audio>.timing.js
+   Load:  reads .timing.js (or older .timing.json) file(s); each names
+          its own movement
    Clear: discards the timing recorded in this browser
-   Recordings persist in localStorage. When a movement has none, a
-   <audio>.timing.json file next to its MP3 is used (fetch: needs the
-   page served over http, not opened as file://).
+   Export: writes every timing kept in this browser to <audio>.timing.js
+          in its MP3's folder (Chromium: folder access; others: downloads)
+   Recordings persist in localStorage. When a movement has none, the
+   <audio>.timing.js file next to its MP3 is used. That file is the
+   timing JSON wrapped in one onePageMp3Timing(...) call, so a <script>
+   can load it when the page is opened as file:// (fetch can't).
    Auto mode uses these times instead of linear interpolation.
 ================================================================ */
 const TIMING_FORMAT      = 'onepagemp3-lyrics-timing';
 const TIMING_STORAGE_KEY = 'onepagemp3.timing:';
+const TIMING_CALLBACK    = 'onePageMp3Timing';  // what a .timing.js file calls
 
 const timing = {
   recording: false,
@@ -1304,9 +1313,9 @@ function movementKey(movement) {
   return `${e.composer.id}/${e.work.id}/${movement.id}`;
 }
 
-// assets/.../Chapter1.mp3 -> assets/.../Chapter1.timing.json
+// assets/.../Chapter1.mp3 -> assets/.../Chapter1.timing.js
 function timingFileUrl(movement) {
-  return (movement.audio ?? movement.id).replace(/\.[^./]+$/, '') + '.timing.json';
+  return (movement.audio ?? movement.id).replace(/\.[^./]+$/, '') + '.timing.js';
 }
 
 function timingFileName(movement) {
@@ -1350,11 +1359,18 @@ function timingDoc(movement) {
   };
 }
 
-// Pretty-print with one lyric line per row, so the file is easy to read and hand-edit
-function timingJson(doc) {
+// Contents of a .timing.js file: the timing JSON wrapped in one TIMING_CALLBACK call,
+// pretty-printed with one lyric line per row so it is easy to read and hand-edit
+function timingFileText(doc) {
   const { lines, ...head } = doc;
-  return JSON.stringify(head, null, 2).slice(0, -2) + ',\n  "lines": [\n' +
-    lines.map(l => '    ' + JSON.stringify(l)).join(',\n') + '\n  ]\n}\n';
+  return `${TIMING_CALLBACK}(` + JSON.stringify(head, null, 2).slice(0, -2) + ',\n  "lines": [\n' +
+    lines.map(l => '    ' + JSON.stringify(l)).join(',\n') + '\n  ]\n});\n';
+}
+
+// The timing document in a .timing.js file, or in a plain .timing.json one
+function parseTimingFile(text) {
+  const json = text.trim().replace(new RegExp(`^${TIMING_CALLBACK}\\(([\\s\\S]*)\\);?$`), '$1');
+  return JSON.parse(json);
 }
 
 // Validate a timing document and attach it to the movement it names; returns that movement
@@ -1398,18 +1414,34 @@ async function loadTiming(movement) {
   } catch (err) {
     console.warn('Ignoring stored lyrics timing:', err);
   }
-  try {
-    const res = await fetch(timingFileUrl(movement), { cache: 'no-cache' });
-    if (res.ok && !timing.byKey[key]) applyTimingDoc(await res.json(), 'file');
-  } catch {
-    // No timing file, or page opened as file:// where fetch is blocked
-  }
+  await loadTimingFile(movement);
 }
+
+// Run the .timing.js file next to the audio; it hands its timing to TIMING_CALLBACK.
+// A missing file just fires 'error'.
+function loadTimingFile(movement) {
+  return new Promise(resolve => {
+    const script = document.createElement('script');
+    script.src = timingFileUrl(movement) + (location.protocol === 'file:' ? '' : `?t=${Date.now()}`);
+    script.onload = script.onerror = () => { script.remove(); resolve(); };
+    document.head.append(script);
+  });
+}
+
+window[TIMING_CALLBACK] = doc => {
+  // A recording made in this browser while the file was loading wins
+  if (timing.byKey[`${doc?.composer}/${doc?.work}/${doc?.movement}`]) return;
+  try {
+    applyTimingDoc(doc, 'file');
+  } catch (err) {
+    console.warn('Ignoring lyrics timing file:', err.message);
+  }
+};
 
 async function saveTimingFile() {
   const movement = currentMovement();
   if (!movement || !lyricTimes(movement)) return;
-  const json = timingJson(timingDoc(movement));
+  const text = timingFileText(timingDoc(movement));
   const name = timingFileName(movement);
 
   // Chromium: let the user save straight into the assets folder next to the MP3
@@ -1417,10 +1449,10 @@ async function saveTimingFile() {
     try {
       const handle = await window.showSaveFilePicker({
         suggestedName: name,
-        types: [{ description: 'Lyrics timing', accept: { 'application/json': ['.json'] } }]
+        types: [{ description: 'Lyrics timing', accept: { 'text/javascript': ['.js'] } }]
       });
       const writable = await handle.createWritable();
-      await writable.write(json);
+      await writable.write(text);
       await writable.close();
       return;
     } catch (err) {
@@ -1428,11 +1460,92 @@ async function saveTimingFile() {
       console.warn('Save picker failed, downloading instead:', err);
     }
   }
+  downloadFile(name, text);
+}
+
+function downloadFile(name, text) {
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  a.href = URL.createObjectURL(new Blob([text], { type: 'text/javascript' }));
   a.download = name;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+// Movements whose timing is kept in this browser (localStorage)
+function storedTimingMovements() {
+  try {
+    return state.allMovements.map(e => e.data)
+      .filter(m => localStorage.getItem(TIMING_STORAGE_KEY + movementKey(m)) !== null);
+  } catch {
+    return [];
+  }
+}
+
+let timingRootDir = null;  // folder picked for Export, reused for the rest of the session
+
+// The MP3's folder inside the picked one: the picked folder is either the app folder
+// (audio paths are relative to index.html) or the MP3's own folder
+async function mp3Folder(root, movement) {
+  const parts   = movement.audio.split('/');
+  const mp3Name = parts.pop();
+  try {
+    let dir = root;
+    for (const part of parts) dir = await dir.getDirectoryHandle(part);
+    await dir.getFileHandle(mp3Name);
+    return dir;
+  } catch {
+    await root.getFileHandle(mp3Name);  // throws NotFoundError if the MP3 isn't here either
+    return root;
+  }
+}
+
+// Write every timing kept in this browser next to its MP3, as <audio>.timing.js
+async function exportStoredTimings() {
+  let root = null;
+  if (window.showDirectoryPicker) {
+    try {
+      root = timingRootDir ??= await window.showDirectoryPicker({ id: 'onepagemp3', mode: 'readwrite' });
+    } catch (err) {
+      if (err.name !== 'AbortError') alert('Could not open the folder:\n' + err.message);
+      return;
+    }
+  }
+
+  const written = [], failed = [];
+  for (const movement of storedTimingMovements()) {
+    await loadTiming(movement);  // not in memory yet if the movement wasn't opened this session
+    const name = timingFileName(movement);
+    const text = timingFileText(timingDoc(movement));
+    if (!root) {
+      // No folder access (Firefox / Safari): download, to be moved next to the MP3 by hand
+      downloadFile(name, text);
+      written.push(name);
+      continue;
+    }
+    try {
+      const dir = await mp3Folder(root, movement);
+      const writable = await (await dir.getFileHandle(name, { create: true })).createWritable();
+      await writable.write(text);
+      await writable.close();
+      written.push(timingFileUrl(movement));
+    } catch (err) {
+      failed.push(err.name === 'NotFoundError'
+        ? `${name}: ${movement.audio.split('/').pop()} is not in the picked folder`
+        : `${name}: ${err.message}`);
+    }
+  }
+  if (root && written.length === 0) timingRootDir = null;  // wrong folder: ask again next time
+
+  const report = [];
+  if (written.length) {
+    report.push(root ? `Exported ${written.length} lyrics timing file(s):`
+                     : `Downloaded ${written.length} lyrics timing file(s); move each next to its MP3:`,
+                ...written.map(f => '  ' + f));
+  }
+  if (failed.length) {
+    report.push('Could not export (pick the folder that contains index.html):', ...failed.map(f => '  ' + f));
+  }
+  alert(report.join('\n'));
 }
 
 function setRecording(on) {
@@ -1473,6 +1586,11 @@ function updateTimingPanel() {
   document.getElementById('btn-record').disabled       = !hasLyrics && !timing.recording;
   document.getElementById('btn-timing-save').disabled  = !times;
   document.getElementById('btn-timing-clear').disabled = rec?.source !== 'local';
+
+  const stored = storedTimingMovements().length;
+  const exportBtn = document.getElementById('btn-timing-export');
+  exportBtn.disabled    = stored === 0;
+  exportBtn.textContent = stored ? `Export ${stored} to MP3 folders` : 'Export to MP3 folders';
 }
 
 // Timing of the current movement changed: refresh the panel and, in auto mode, the highlight
@@ -1493,6 +1611,11 @@ document.getElementById('btn-timing-save').addEventListener('click', e => {
   saveTimingFile();
 });
 
+document.getElementById('btn-timing-export').addEventListener('click', e => {
+  e.currentTarget.blur();
+  exportStoredTimings();
+});
+
 document.getElementById('btn-timing-load').addEventListener('click', e => {
   e.currentTarget.blur();
   document.getElementById('timing-file-input').click();
@@ -1502,7 +1625,7 @@ document.getElementById('timing-file-input').addEventListener('change', async e 
   const errors = [];
   for (const file of e.target.files) {
     try {
-      storeTiming(applyTimingDoc(JSON.parse(await file.text()), 'local'));
+      storeTiming(applyTimingDoc(parseTimingFile(await file.text()), 'local'));
     } catch (err) {
       errors.push(`${file.name}: ${err.message}`);
     }

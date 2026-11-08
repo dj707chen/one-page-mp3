@@ -147,6 +147,47 @@
       padding-left: 36px;
     }
 
+    /* ─── Lyrics timing recorder (bottom of left pane) ─── */
+    #timing-panel {
+      flex-shrink: 0;
+      border-top: 1px solid var(--border);
+      padding: 10px 14px 12px;
+    }
+
+    #timing-panel h2 {
+      font-size: 0.72rem;
+      font-weight: normal;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    #timing-status {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+      white-space: pre-line;
+      min-height: 4.5em;  /* 3 lines: no layout shift when the recording hint appears */
+      margin-bottom: 8px;
+    }
+
+    #timing-buttons {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+    }
+
+    #timing-buttons .ctrl-btn { padding: 5px 4px; font-size: 0.74rem; }
+
+    #btn-record.recording,
+    #btn-record.recording:hover {
+      background: #b3261e;
+      border-color: #b3261e;
+      color: #fff;
+    }
+
+    #rec-indicator { color: #ff5c52; margin-right: 8px; }
+
     /* ============ RIGHT PANE ============ */
     #right-pane {
       display: grid;
@@ -475,6 +516,18 @@
       <h1>&#9835; / Lyrics</h1>
     </div>
     <div id="composer-tree"></div>
+    <div id="timing-panel">
+      <h2>LYRICS TIMING</h2>
+      <div id="timing-status"></div>
+      <div id="timing-buttons">
+        <button class="ctrl-btn" id="btn-record"       aria-pressed="false"
+                title="Record: while the audio plays, each line you advance to in manual mode gets the current audio time">&#9679; Rec</button>
+        <button class="ctrl-btn" id="btn-timing-save"  title="Save this movement's timing to a .timing.json file (put it next to the MP3)">Save</button>
+        <button class="ctrl-btn" id="btn-timing-load"  title="Load .timing.json file(s)">Load</button>
+        <button class="ctrl-btn" id="btn-timing-clear" title="Discard the timing recorded in this browser for this movement">Clear</button>
+      </div>
+      <input type="file" id="timing-file-input" accept=".json,application/json" multiple hidden>
+    </div>
   </aside>
 
   <!-- ══════════════════════════════════════
@@ -505,7 +558,7 @@
         <img id="thumbnail-img" src="" alt="">
         <div id="thumbnail-play-hint">&#9654; Click to play</div>
       </div>
-      <div id="manual-hint" hidden>&darr;&rarr; next &nbsp; &uarr;&larr; back</div>
+      <div id="manual-hint" hidden><span id="rec-indicator" hidden>&#9679; REC</span>&darr;&rarr; next &nbsp; &uarr;&larr; back</div>
       <div id="lyrics-container">
         <div id="lyrics-inner">
           <div class="lyrics-spacer"></div>
@@ -546,8 +599,8 @@
    APP DATA
    Structure: composers[] > works[] > movements[] > lyrics[]
    Lyrics entry: { text: "...", time: <seconds> }   (time optional)
-   When 'time' is present on all lyrics, auto-sync highlights.
-   Otherwise, linear interpolation is used for approximate sync.
+   Auto mode highlights by recorded timing (see LYRICS TIMING), else
+   by 'time' fields, else by linear interpolation (approximate sync).
 ================================================================ */
 const APP_DATA = {
   version: "1.0",
@@ -1027,6 +1080,12 @@ function loadMovement(composer, work, movement, autoplay = false) {
   // Render lyrics
   renderLyrics(movement);
   updateNavButtons();
+  updateTimingPanel();
+
+  // A timing file may arrive after rendering — resync once it does
+  loadTiming(movement).then(() => {
+    if (currentMovement() === movement) refreshAfterTimingChange();
+  });
 
   if (autoplay) {
     audio.play().catch(() => {});
@@ -1070,9 +1129,10 @@ function renderLyrics(movement) {
       // Auto mode: if line has a timestamp, clicking seeks there.
       el.addEventListener('click', () => {
         if (state.highlightMode === 'manual') {
-          highlightLyricLine(idx);
-        } else if (lyric.time !== undefined) {
-          audio.currentTime = lyric.time;
+          selectLyricLine(idx);
+        } else {
+          const time = lyricTimes(movement)?.[idx];
+          if (time != null) audio.currentTime = time;
         }
       });
       inner.appendChild(el);
@@ -1084,7 +1144,7 @@ function renderLyrics(movement) {
   inner.appendChild(bottomSpacer);
 
   // Manual mode starts with no line highlighted; the first key press highlights line 0
-  highlightLyricLine(state.highlightMode === 'manual' ? -1 : 0, true);
+  highlightLyricLine(state.highlightMode === 'manual' ? -1 : getCurrentLyricIdx(), true);
 }
 
 /* ================================================================
@@ -1136,6 +1196,9 @@ function setHighlightMode(mode) {
   });
   document.getElementById('manual-hint').hidden = mode !== 'manual';
 
+  // Recording captures manual selections only
+  if (mode !== 'manual' && timing.recording) setRecording(false);
+
   // Back to auto: resync the highlight to the audio position
   if (mode === 'auto' && state.composerIdx !== null) {
     highlightLyricLine(getCurrentLyricIdx());
@@ -1146,9 +1209,16 @@ function stepLyricLine(delta) {
   const movement = currentMovement();
   if (!movement || !movement.lyrics || movement.lyrics.length === 0) return;
   const idx = Math.max(-1, Math.min(movement.lyrics.length - 1, state.lastLyricIdx + delta));
-  highlightLyricLine(idx);
+  selectLyricLine(idx);
   // Lyrics may be driven without audio (e.g. live singing) — don't leave them hidden
   document.getElementById('thumbnail-overlay').classList.add('hidden');
+}
+
+// Operator moved the highlight (key or click) in manual mode
+function selectLyricLine(idx) {
+  const prevIdx = state.lastLyricIdx;
+  highlightLyricLine(idx);
+  recordLineTime(idx, prevIdx);
 }
 
 document.querySelectorAll('#mode-toggle .ctrl-btn').forEach(btn => {
@@ -1185,13 +1255,14 @@ function getCurrentLyricIdx() {
   const duration = isFinite(audio.duration) ? audio.duration : 1;
   const t        = audio.currentTime;
 
-  // If all lyrics have time stamps — use them
-  if (lyrics[0].time !== undefined) {
-    let idx = 0;
-    for (let i = 0; i < lyrics.length; i++) {
-      if (lyrics[i].time <= t) idx = i;
-      else break;
-    }
+  // Timed lyrics: the line that started most recently (-1 before the first line).
+  // Untimed lines are skipped; a partial re-recording may leave times out of order.
+  const times = lyricTimes(movement);
+  if (times) {
+    let idx = -1, start = -Infinity;
+    times.forEach((time, i) => {
+      if (time !== null && time <= t && time >= start) { idx = i; start = time; }
+    });
     return idx;
   }
 
@@ -1201,6 +1272,259 @@ function getCurrentLyricIdx() {
     lyrics.length - 1
   );
 }
+
+/* ================================================================
+   LYRICS TIMING — record, save, load
+   Rec:   arms recording (switches to manual mode). While the audio
+          plays, each line the operator advances to (key or click) gets
+          the current audio time as its start time. Moving back is a
+          correction and records nothing; advancing again overwrites.
+   Save:  writes the current movement's timing to <audio>.timing.json
+   Load:  reads .timing.json file(s); each names its own movement
+   Clear: discards the timing recorded in this browser
+   Recordings persist in localStorage. When a movement has none, a
+   <audio>.timing.json file next to its MP3 is used (fetch: needs the
+   page served over http, not opened as file://).
+   Auto mode uses these times instead of linear interpolation.
+================================================================ */
+const TIMING_FORMAT      = 'onepagemp3-lyrics-timing';
+const TIMING_STORAGE_KEY = 'onepagemp3.timing:';
+
+const timing = {
+  recording: false,
+  byKey:     {}  // movementKey -> { times: [seconds | null per lyric line], source: 'local' | 'file' }
+};
+
+function movementEntry(movement) {
+  return state.allMovements.find(e => e.data === movement);
+}
+
+function movementKey(movement) {
+  const e = movementEntry(movement);
+  return `${e.composer.id}/${e.work.id}/${movement.id}`;
+}
+
+// assets/.../Chapter1.mp3 -> assets/.../Chapter1.timing.json
+function timingFileUrl(movement) {
+  return (movement.audio ?? movement.id).replace(/\.[^./]+$/, '') + '.timing.json';
+}
+
+function timingFileName(movement) {
+  return timingFileUrl(movement).split('/').pop();
+}
+
+// Start time (seconds or null) of each lyric line, or null if the movement has no timing.
+// Recorded / loaded timing wins over 'time' fields in APP_DATA.
+function lyricTimes(movement) {
+  const rec = timing.byKey[movementKey(movement)];
+  if (rec) return rec.times;
+  if (movement.lyrics?.some(l => l.time !== undefined)) return movement.lyrics.map(l => l.time ?? null);
+  return null;
+}
+
+function recordLineTime(idx, prevIdx) {
+  if (!timing.recording || audio.paused || idx < 0 || idx <= prevIdx) return;
+  const movement = currentMovement();
+  const key = movementKey(movement);
+  // Build on existing timing so a section can be re-recorded
+  const rec = timing.byKey[key] ??=
+    { times: (lyricTimes(movement) ?? movement.lyrics.map(() => null)).slice() };
+  rec.source = 'local';
+  rec.times[idx] = Math.round(audio.currentTime * 1000) / 1000;
+  storeTiming(movement);
+  updateTimingPanel();
+}
+
+function timingDoc(movement) {
+  const e = movementEntry(movement);
+  const times = lyricTimes(movement) ?? [];
+  return {
+    format:   TIMING_FORMAT,
+    version:  1,
+    composer: e.composer.id,
+    work:     e.work.id,
+    movement: movement.id,
+    audio:    movement.audio,
+    saved:    new Date().toISOString(),
+    lines:    movement.lyrics.map((l, i) => ({ time: times[i] ?? null, text: l.text }))
+  };
+}
+
+// Pretty-print with one lyric line per row, so the file is easy to read and hand-edit
+function timingJson(doc) {
+  const { lines, ...head } = doc;
+  return JSON.stringify(head, null, 2).slice(0, -2) + ',\n  "lines": [\n' +
+    lines.map(l => '    ' + JSON.stringify(l)).join(',\n') + '\n  ]\n}\n';
+}
+
+// Validate a timing document and attach it to the movement it names; returns that movement
+function applyTimingDoc(doc, source) {
+  if (doc?.format !== TIMING_FORMAT || !Array.isArray(doc.lines)) {
+    throw new Error('not a lyrics timing file');
+  }
+  const e = state.allMovements.find(m =>
+    m.composer.id === doc.composer && m.work.id === doc.work && m.data.id === doc.movement);
+  if (!e) throw new Error(`unknown movement ${doc.composer}/${doc.work}/${doc.movement}`);
+
+  const lyrics = e.data.lyrics ?? [];
+  if (doc.lines.length !== lyrics.length) {
+    console.warn(`Timing for ${doc.movement} has ${doc.lines.length} lines, lyrics have ${lyrics.length}`);
+  }
+  const times = lyrics.map((_, i) => {
+    const t = doc.lines[i]?.time;
+    return typeof t === 'number' && isFinite(t) && t >= 0 ? t : null;
+  });
+  if (times.every(t => t === null)) throw new Error('no timed lines');
+
+  timing.byKey[movementKey(e.data)] = { times, source };
+  return e.data;
+}
+
+function storeTiming(movement) {
+  try {
+    localStorage.setItem(TIMING_STORAGE_KEY + movementKey(movement), JSON.stringify(timingDoc(movement)));
+  } catch (err) {
+    console.warn('Could not store lyrics timing:', err);
+  }
+}
+
+// Make a movement's timing available: this browser's recording, else the file next to the audio
+async function loadTiming(movement) {
+  const key = movementKey(movement);
+  if (timing.byKey[key]) return;
+  try {
+    const stored = localStorage.getItem(TIMING_STORAGE_KEY + key);
+    if (stored) { applyTimingDoc(JSON.parse(stored), 'local'); return; }
+  } catch (err) {
+    console.warn('Ignoring stored lyrics timing:', err);
+  }
+  try {
+    const res = await fetch(timingFileUrl(movement), { cache: 'no-cache' });
+    if (res.ok && !timing.byKey[key]) applyTimingDoc(await res.json(), 'file');
+  } catch {
+    // No timing file, or page opened as file:// where fetch is blocked
+  }
+}
+
+async function saveTimingFile() {
+  const movement = currentMovement();
+  if (!movement || !lyricTimes(movement)) return;
+  const json = timingJson(timingDoc(movement));
+  const name = timingFileName(movement);
+
+  // Chromium: let the user save straight into the assets folder next to the MP3
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({
+        suggestedName: name,
+        types: [{ description: 'Lyrics timing', accept: { 'application/json': ['.json'] } }]
+      });
+      const writable = await handle.createWritable();
+      await writable.write(json);
+      await writable.close();
+      return;
+    } catch (err) {
+      if (err.name === 'AbortError') return;  // user cancelled
+      console.warn('Save picker failed, downloading instead:', err);
+    }
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function setRecording(on) {
+  timing.recording = on;
+  const btn = document.getElementById('btn-record');
+  btn.classList.toggle('recording', on);
+  btn.setAttribute('aria-pressed', on);
+  btn.innerHTML = on ? '&#9632; Stop' : '&#9679; Rec';
+  document.getElementById('rec-indicator').hidden = !on;
+  if (on && state.highlightMode !== 'manual') setHighlightMode('manual');
+  updateTimingPanel();
+}
+
+function updateTimingPanel() {
+  const movement  = currentMovement();
+  const hasLyrics = !!movement?.lyrics?.length;
+  const times     = hasLyrics ? lyricTimes(movement) : null;
+  const rec       = hasLyrics ? timing.byKey[movementKey(movement)] : null;
+
+  const lines = [];
+  if (!hasLyrics) {
+    lines.push(movement ? 'This movement has no lyrics.' : 'Select a movement to record its timing.');
+  } else {
+    const timed  = times ? times.filter(t => t !== null).length : 0;
+    const origin = !times              ? ''
+                 : rec?.source === 'file' ? ` · ${timingFileName(movement)}`
+                 : rec                 ? ' · this browser'
+                 :                       ' · built-in';
+    lines.push(`${movement.number}. ${movement.title}`);
+    lines.push(`${timed} / ${movement.lyrics.length} lines timed${origin}`);
+  }
+  if (timing.recording) {
+    lines.push(audio.paused ? 'Play the audio, then press ↓ as each line starts.'
+                            : '● Recording — press ↓ as each line starts.');
+  }
+  document.getElementById('timing-status').textContent = lines.join('\n');
+
+  document.getElementById('btn-record').disabled       = !hasLyrics && !timing.recording;
+  document.getElementById('btn-timing-save').disabled  = !times;
+  document.getElementById('btn-timing-clear').disabled = rec?.source !== 'local';
+}
+
+// Timing of the current movement changed: refresh the panel and, in auto mode, the highlight
+function refreshAfterTimingChange() {
+  updateTimingPanel();
+  if (state.highlightMode === 'auto' && currentMovement()) {
+    highlightLyricLine(getCurrentLyricIdx());
+  }
+}
+
+document.getElementById('btn-record').addEventListener('click', e => {
+  setRecording(!timing.recording);
+  e.currentTarget.blur();  // so Space doesn't re-activate the button
+});
+
+document.getElementById('btn-timing-save').addEventListener('click', e => {
+  e.currentTarget.blur();
+  saveTimingFile();
+});
+
+document.getElementById('btn-timing-load').addEventListener('click', e => {
+  e.currentTarget.blur();
+  document.getElementById('timing-file-input').click();
+});
+
+document.getElementById('timing-file-input').addEventListener('change', async e => {
+  const errors = [];
+  for (const file of e.target.files) {
+    try {
+      storeTiming(applyTimingDoc(JSON.parse(await file.text()), 'local'));
+    } catch (err) {
+      errors.push(`${file.name}: ${err.message}`);
+    }
+  }
+  e.target.value = '';  // allow re-loading the same file
+  if (errors.length) alert('Could not load lyrics timing:\n' + errors.join('\n'));
+  refreshAfterTimingChange();
+});
+
+document.getElementById('btn-timing-clear').addEventListener('click', e => {
+  e.currentTarget.blur();
+  const movement = currentMovement();
+  if (!movement || !confirm(`Discard the timing recorded in this browser for "${movement.number}. ${movement.title}"?`)) return;
+  const key = movementKey(movement);
+  delete timing.byKey[key];
+  try { localStorage.removeItem(TIMING_STORAGE_KEY + key); } catch { /* storage unavailable */ }
+  refreshAfterTimingChange();
+  // Fall back to the timing file next to the audio, if there is one
+  loadTiming(movement).then(() => {
+    if (currentMovement() === movement) refreshAfterTimingChange();
+  });
+});
 
 /* ================================================================
    AUDIO EVENTS
@@ -1225,6 +1549,7 @@ audio.addEventListener('play', () => {
   document.getElementById('btn-play-pause').innerHTML = '&#9646;&#9646;';
   state.isPlaying = true;
   document.getElementById('thumbnail-overlay').classList.add('hidden');
+  updateTimingPanel();
 });
 
 document.getElementById('thumbnail-overlay').addEventListener('click', () => {
@@ -1234,6 +1559,7 @@ document.getElementById('thumbnail-overlay').addEventListener('click', () => {
 audio.addEventListener('pause', () => {
   document.getElementById('btn-play-pause').innerHTML = '&#9654;';
   state.isPlaying = false;
+  updateTimingPanel();
 });
 
 audio.addEventListener('ended', () => {
@@ -1308,7 +1634,7 @@ document.getElementById('btn-next').addEventListener('click', () => {
      Left/Right:       ±5 seconds
      Shift+Left/Right: ±15 seconds
    Manual mode:
-     Down / Right:     highlight next lyric line
+     Down / Right:     highlight next lyric line (recorded while Rec is on)
      Up / Left:        highlight previous lyric line
 ================================================================ */
 const MANUAL_KEYS = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 };
@@ -1393,6 +1719,7 @@ buildFlatList();
 buildTree();
 updateNavButtons();
 setHighlightMode(state.highlightMode);
+updateTimingPanel();
 </script>
 </body>
 </html>

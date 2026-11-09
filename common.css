@@ -147,13 +147,42 @@ body {
   padding: 10px 14px 12px;
 }
 
+#timing-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
 #timing-panel h2 {
   font-size: 0.72rem;
   font-weight: normal;
   color: var(--accent);
   letter-spacing: 0.06em;
-  margin-bottom: 4px;
 }
+
+/* Up arrow; turned to point down while the panel is open */
+#btn-timing-toggle {
+  margin-left: auto;
+  display: flex;
+  padding: 4px 8px;
+}
+#btn-timing-toggle svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+#timing-panel:not(.collapsed) #btn-timing-toggle { transform: rotate(180deg); }
+
+/* Collapsed (the default): only the arrow shows */
+#timing-panel.collapsed { padding: 6px 14px; }
+#timing-panel.collapsed #timing-header { margin-bottom: 0; }
+#timing-panel.collapsed h2,
+#timing-panel.collapsed #timing-body { display: none; }
 
 #timing-status {
   font-size: 0.72rem;
@@ -483,12 +512,13 @@ body {
   flex: 1;
 }
 
-/* ─── Maximized lyrics panel: hide nav + info panes, enlarge lyrics ─── */
+/* ─── Maximized lyrics panel: hide nav, bottom controls + info pane, enlarge lyrics ─── */
 #app.lyrics-maximized { grid-template-columns: 1fr; }
 #app.lyrics-maximized #left-pane,
+#app.lyrics-maximized #bottom-controls,
 #app.lyrics-maximized #info-pane,
 #app.lyrics-maximized #top-controls > :not(#now-playing) { display: none; }
-#app.lyrics-maximized #right-pane { grid-template-rows: auto 1fr auto; }
+#app.lyrics-maximized #right-pane { grid-template-rows: auto 1fr; }
 #app.lyrics-maximized .lyric-meta { font-size: 1rem; }
 #app.lyrics-maximized .lyric-line { font-size: 2.7rem; }
 #app.lyrics-maximized .lyric-line.current { font-size: 3.1rem; }

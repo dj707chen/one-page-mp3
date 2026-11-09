@@ -138,7 +138,7 @@ function buildTree() {
 
   composers.forEach(composer => {
     const composerEl = document.createElement('div');
-    composerEl.className = 'tree-composer open';
+    composerEl.className = 'tree-composer';  // artist and work folders start collapsed
 
     const composerHeader = document.createElement('div');
     composerHeader.className = 'tree-composer-header';
@@ -155,7 +155,7 @@ function buildTree() {
 
     works.forEach(work => {
       const workEl = document.createElement('div');
-      workEl.className = 'tree-work open';
+      workEl.className = 'tree-work';
 
       const workHeader = document.createElement('div');
       workHeader.className = 'tree-work-header';
@@ -392,8 +392,9 @@ document.querySelectorAll('#mode-toggle .ctrl-btn').forEach(btn => {
 
 /* ================================================================
    MAXIMIZE LYRICS PANEL
-   Hides the left nav pane, the info pane and the top-panel buttons
-   (including Maximize itself); lyrics font grows (CSS). Esc restores.
+   Hides the left nav pane, the top-panel buttons (including Maximize
+   itself), the bottom control section and the info pane; lyrics font
+   grows (CSS). Esc restores. Space / arrow keys still control playback.
 ================================================================ */
 function setLyricsMaximized(on) {
   const app = document.getElementById('app');
@@ -782,6 +783,15 @@ function refreshAfterTimingChange() {
     highlightLyricLine(getCurrentLyricIdx());
   }
 }
+
+// The panel starts collapsed to its arrow button; the button opens and closes it
+document.getElementById('btn-timing-toggle').addEventListener('click', e => {
+  const btn = e.currentTarget;
+  const collapsed = document.getElementById('timing-panel').classList.toggle('collapsed');
+  btn.setAttribute('aria-expanded', !collapsed);
+  btn.title = collapsed ? 'Show lyrics timing' : 'Hide lyrics timing';
+  btn.blur();  // so Space doesn't re-activate the button
+});
 
 document.getElementById('btn-record').addEventListener('click', e => {
   setRecording(!timing.recording);

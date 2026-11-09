@@ -17,19 +17,25 @@
       <h1>&#9835; / Lyrics</h1>
     </div>
     <div id="composer-tree"></div>
-    <div id="timing-panel">
-      <h2>LYRICS TIMING</h2>
-      <div id="timing-status"></div>
-      <div id="timing-buttons">
-        <button class="ctrl-btn" id="btn-record"       aria-pressed="false"
-                title="Record: while the audio plays, each line you advance to in manual mode gets the current audio time">&#9679; Rec</button>
-        <button class="ctrl-btn" id="btn-timing-save"  title="Save this movement's timing to a .timing.js file (put it next to the MP3)">Save</button>
-        <button class="ctrl-btn" id="btn-timing-load"  title="Load .timing.js (or older .timing.json) file(s)">Load</button>
-        <button class="ctrl-btn" id="btn-timing-clear" title="Discard the timing recorded in this browser for this movement">Clear</button>
-        <button class="ctrl-btn" id="btn-timing-export"
-                title="Write every timing kept in this browser next to its MP3 as .timing.js. Pick the app folder (the one with index.html) or the MP3 folder.">Export to MP3 folders</button>
+    <div id="timing-panel" class="collapsed">
+      <div id="timing-header">
+        <h2>LYRICS TIMING</h2>
+        <button class="ctrl-btn" id="btn-timing-toggle" aria-expanded="false" aria-controls="timing-body"
+                title="Show lyrics timing"><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 7.5 6 4l3.5 3.5"/></svg></button>
       </div>
-      <input type="file" id="timing-file-input" accept=".js,.json" multiple hidden>
+      <div id="timing-body">
+        <div id="timing-status"></div>
+        <div id="timing-buttons">
+          <button class="ctrl-btn" id="btn-record"       aria-pressed="false"
+                  title="Record: while the audio plays, each line you advance to in manual mode gets the current audio time">&#9679; Rec</button>
+          <button class="ctrl-btn" id="btn-timing-save"  title="Save this movement's timing to a .timing.js file (put it next to the MP3)">Save</button>
+          <button class="ctrl-btn" id="btn-timing-load"  title="Load .timing.js (or older .timing.json) file(s)">Load</button>
+          <button class="ctrl-btn" id="btn-timing-clear" title="Discard the timing recorded in this browser for this movement">Clear</button>
+          <button class="ctrl-btn" id="btn-timing-export"
+                  title="Write every timing kept in this browser next to its MP3 as .timing.js. Pick the app folder (the one with index.html) or the MP3 folder.">Export to MP3 folders</button>
+        </div>
+        <input type="file" id="timing-file-input" accept=".js,.json" multiple hidden>
+      </div>
     </div>
   </aside>
 

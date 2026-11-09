@@ -1,22 +1,393 @@
 # MP3 Song Player with Lyrics Highlighting
 
-This is a MP3 song player based on HTML and JavaScript, displaying multiple lines of lyrics, highlighting the currently
-sung line of lyrics.
+OnePageMP3 is an MP3 song player built with plain HTML and JavaScript. While a song plays, it shows several lines of
+lyrics and highlights the line being sung.
 
-## Flow of modifying lyrics
+- **One page, offline.** No server, build step, framework or internet connection is needed: open `index.html` and play.
+- **No dependencies.** It is plain HTML5, CSS Grid and ES6+ JavaScript, using the browser's `<audio>` element.
+- **Lyrics follow the music.** Each lyric line can have a start time, which you record in the app as the music
+  plays. Lines with no times are spread evenly over the song as an approximation.
 
-The lyrics of each chapter are only in its `.timing.js` file next to the MP3, e.g.
-`assets/AnlunHuang/ChineseRequiem/Chapter1.timing.js`. `index.html` has no lyrics; it reads them from these files.
+## Contents
 
-1. Change the text in the `.timing.js` file, e.g. line 1 of the lyrics in `Chapter1.timing.js`:
+- [Running the app](#running-the-app)
+- [Screen layout](#screen-layout)
+- [Playing music](#playing-music)
+- [Lyrics highlight modes](#lyrics-highlight-modes)
+- [Maximized lyrics](#maximized-lyrics)
+- [Keyboard shortcuts](#keyboard-shortcuts)
+- [Configuration (URL parameters)](#configuration-url-parameters)
+- [Flow: timing the lyrics](#flow-timing-the-lyrics)
+- [Flow: modifying lyrics](#flow-modifying-lyrics)
+- [Flow: adding an artist, work or movement](#flow-adding-an-artist-work-or-movement)
+- [Data files reference](#data-files-reference)
+- [Project structure](#project-structure)
+- [Browser notes](#browser-notes)
+- [Development workflow](#development-workflow)
 
-```javascript
-    {"time":0.1,"text":" ( Prayerfully 以祷告的心 )"},
+## Running the app
+
+**From disk (the usual way).** Double-click `index.html`, or open it as `file:///…/one-page-mp3/index.html`. Every
+data file (artists, works, lyrics) is a `.js` file loaded with a `<script>` tag because browsers block `fetch` of
+local files.
+
+**Over HTTP (optional).** Any static file server works, as long as it supports HTTP **Range requests**. Without
+them the browser cannot seek in the audio: rewind, fast-forward, the progress bar and clicking a lyric line all jump
+back to 0:00. Note that `python3 -m http.server` does **not** support Range requests. When the app is served over HTTP,
+it adds a cache-busting query to every data file, so a plain reload picks up your edits.
+
+## Screen layout
+
+```
+┌───────────────┬─────────────────────────────────────────────────────────────┐
+│ ♫ / Lyrics    │ ◀ Prev  Lyrics:[Auto|Manual]  Work · Movement  ⤢ Max Next ▶ │  top controls
+│               ├─────────────────────────────────────────────────────────────┤
+│ ▸ Artist      │                                                             │
+│   ▸ Work      │        lines above (dimmed)                                 │
+│     1. Mvt    │   ▌    CURRENT LINE (highlighted)                           │  lyrics
+│     2. Mvt    │        lines below (dimmed)                                 │
+│               │                                                             │
+│               ├─────────────────────────────────────────────────────────────┤
+│               │ ◀◀  −15s  ▶  +15s  ▶▶   ━━━━━━━●━━━━━━━━━━   1:23 / 5:40    │  bottom controls
+│ LYRICS TIMING ├─────────────────────────────────────────────────────────────┤
+│   (collapsed) │ Artist · Work Op. (year) · 首演: …   │ Description          │  info pane
+└───────────────┴─────────────────────────────────────────────────────────────┘
 ```
 
-   A line not timed yet has `"time":null`. Each time belongs to the line it is on, so when adding or removing
-   a line, add or remove its time with it.
+- **Left navigation pane**
+  - **Tree.** Artists, then works, then movements. Artists are sorted alphabetically by `nameSort` and works by
+    `titleSort`. Movements keep the order they have in `work.js`. Artist and work folders start collapsed; click one
+    to open or close it. The movement that is playing is highlighted.
+  - **LYRICS TIMING panel.** Docked at the bottom of the pane and collapsed by default; open it with its `^` button.
+    See [Flow: timing the lyrics](#flow-timing-the-lyrics).
+- **Top control section**
+  - **◀ Prev / Next ▶** go to the previous or next movement. If music is playing, the new movement starts playing.
+  - **Lyrics: Auto | Manual** switches the [highlight mode](#lyrics-highlight-modes).
+  - **Now playing** shows the work title and the movement number and title.
+  - **⤢ Maximize** shows only the lyrics. See [Maximized lyrics](#maximized-lyrics).
+- **Song playing section (lyrics)**
+  - **Movement heading.** The number and title, then the subtitle (e.g. the Bible references) and the voicing.
+  - **Lyric lines.** The current line has a gold left border, a tinted background and a larger font. Up to 4 lines
+    above and 4 below it use the "above" and "below" colors. Lines further away are faded. The current line is kept
+    centered vertically.
+  - **Picture.** The movement's picture (`thumbnail`) covers the lyrics until playback starts, with "▶ Click to play".
+    It is hidden while the music plays so it never makes the lyrics hard to read.
+- **Bottom control section.** These are the playback buttons: ◀◀ rewind to the beginning, −15s, ▶ / ❚❚
+  play/pause, +15s, and ▶▶ fast-forward to the end. Next to them are a draggable progress bar and the elapsed / total
+  time.
+- **Bottom info pane.** Shows the artist's name, the work's title with its opus number and year, the premiere
+  (`首演: …`) and the work's description.
 
-2. Timing the lyrics
-Load the app HTML page, manually time the lyrics (LYRICS TIMING: Rec), then Save / Export to the same `.timing.js` file.
-Saving keeps the text from the file and writes the new times.
+## Playing music
+
+1. In the left tree, open an artist and then a work, and click a movement. Its lyrics, picture and work information
+   appear.
+2. Click the picture, or press ▶ or Space, to play.
+3. When a movement ends, the next one starts automatically.
+
+Prev, Next and auto-advance use the **data order**: artists as listed in `APP_DATA.artistFiles` in `app.js`, works
+as listed in each artist's `workFiles`, then movements as listed in `work.js`. This order can differ from the
+alphabetical order of the tree.
+
+If a movement's MP3 file is missing, its lyrics still display. The browser console logs a warning.
+
+## Lyrics highlight modes
+
+Choose a mode with **Lyrics: Auto | Manual** in the top bar, or start in Manual with the URL parameter
+`?highlight-mode=manual`.
+
+| | **Auto** (default) | **Manual** |
+|---|---|---|
+| What moves the highlight | The audio position | The operator: ↓ / → for the next line, ↑ / ← for the previous one, or a click on any line |
+| Clicking a lyric line | Jumps the audio to that line's start time, if the line is timed | Highlights that line |
+| ← / → keys | Seek 5 s (15 s with Shift) | Previous / next line |
+| Typical use | Listening to a recording | Live singing, or [recording the timing](#flow-timing-the-lyrics) |
+
+How Auto mode chooses the current line:
+
+1. If the movement has times (from its `.timing.js` file or recorded in this browser), the current line is the one
+   with the latest start time at or before the audio position. Lines without a time are skipped. Before the first
+   timed line, no line is highlighted.
+2. If the movement has no times at all, the lines are spread evenly over the length of the audio. This is a rough
+   approximation.
+
+In Manual mode, a hint (`↓→ next ↑← back`) shows in the corner of the lyrics. The movement starts with no line
+highlighted, and the first ↓ highlights line 1. Holding a key down advances only one line. ◀◀ (rewind to the
+beginning) clears the highlight. Stepping through lines also hides the picture, so lyrics can be shown without any
+audio, for example for live singing. When you switch back to Auto, the highlight returns to the audio position.
+
+## Maximized lyrics
+
+**⤢ Maximize** hides the left pane, the bottom controls, the info pane and the top-bar buttons. Only the "now playing"
+title and the lyrics remain, in a larger font. This suits projecting lyrics for an audience. The keyboard still works:
+Space plays and pauses, and the arrow keys seek or step through lines. **Esc** restores the normal layout.
+
+## Keyboard shortcuts
+
+| Key | Auto mode | Manual mode |
+|---|---|---|
+| Space | Play / pause | Play / pause |
+| ← / → | Back / forward 5 s | Previous / next lyric line |
+| Shift + ← / → | Back / forward 15 s | Previous / next lyric line |
+| ↑ / ↓ | — | Previous / next lyric line |
+| Esc | Leave maximized lyrics | Leave maximized lyrics |
+
+The shortcuts also work after you have dragged the progress bar. They do not apply while you are typing in a text
+field.
+
+## Configuration (URL parameters)
+
+Add parameters to the page URL. Colors are any CSS color, and `#` must be written as `%23`.
+
+| Parameter | Sets | Default |
+|---|---|---|
+| `above-color` | Text color of the lines above the current line | `#7f94b0` |
+| `above-bg` | Background of the lines above the current line | `transparent` |
+| `below-color` | Text color of the lines below the current line | `#7f94b0` |
+| `below-bg` | Background of the lines below the current line | `transparent` |
+| `highlight-mode` | `manual` starts in Manual mode; anything else starts in Auto | `auto` |
+
+For example:
+
+```
+index.html?above-color=%238888aa&below-color=%23aaaaaa&below-bg=rgba(0,0,0,0.2)&highlight-mode=manual
+```
+
+Two settings have no URL parameter yet, so you change them in the source:
+
+- **Current line colors.** `--lyrics-current-color`, `--lyrics-current-bg` and `--lyrics-current-border` at the top
+  of [common.css](common.css).
+- **Number of lines above and below.** This is the `4` in `highlightLyricLine()` in [app.js](app.js). Lines further
+  away are faded.
+
+## Flow: timing the lyrics
+
+Timing means giving each lyric line the moment it starts in the MP3. Auto mode then highlights the lines exactly. You
+record the times in the app by pressing a key as each line starts.
+
+### 1. Record
+
+1. Open the **LYRICS TIMING** panel with the `^` button at the bottom of the left pane.
+2. Select the movement. The panel shows how many lines are timed (for example `22 / 37 lines timed`) and where the
+   times come from: the `.timing.js` file or `this browser`.
+3. Click **● Rec**. This switches to Manual mode, and `● REC` appears in the lyrics corner.
+4. Play the audio. As each line **starts** to be sung, press **↓** (or **→**). The highlight moves to that line, and
+   the line gets the current audio time.
+5. Made a mistake? Press **↑** to go back. Going back records nothing, and advancing again overwrites the time.
+6. Click **■ Stop** to end recording. Switching to Auto also stops it.
+
+Recording rules:
+
+- A time is recorded only while the audio is **playing**, and only when you move **forward**.
+- Each recording builds on the existing times, so you can redo just part of a movement. Use ↑ to put the highlight
+  on the line before the part, move the audio to a little before it with the progress bar or −15s, press play, and
+  continue with ↓.
+- Each recording is saved immediately in the browser's `localStorage`, so it survives a reload.
+- A browser recording **overrides the file's times** (never its text) until you **Clear** it.
+
+### 2. Check
+
+Switch to **Auto** and play. Clicking a timed line in Auto mode jumps the audio to that line's start time, which is a
+quick way to check single lines.
+
+### 3. Save to the project
+
+Only the `.timing.js` file beside the MP3 goes into the project. A browser recording stays in that one browser.
+
+- **Save** writes the **current** movement's timing as `<mp3 name>.timing.js`, e.g. `Chapter3.timing.js`.
+  - In Chrome or Edge, a save dialog opens. Choose the MP3's folder and replace the existing file.
+  - In other browsers, the file is downloaded. Move it next to the MP3 yourself.
+- **Export to MP3 folders** writes **every** movement that has a timing in this browser in one go. The button shows
+  how many there are.
+  - In Chrome or Edge, pick the app folder (the one that contains `index.html`) or the MP3's folder. Each file is
+    written next to its MP3, and the folder is remembered until the page is reloaded.
+  - In other browsers, each file is downloaded. Move each one next to its MP3.
+- Saving keeps the text of the lyrics as it is in the file and writes only the new times.
+
+### 4. Tidy up and commit
+
+1. Click **Clear** for the movement. This discards the browser recording, so the app goes back to the file you just
+   saved. If you skip it, the old browser recording keeps overriding any later edits to the file's times.
+2. Reload the page and confirm that the panel shows `… lines timed · ChapterN.timing.js`.
+3. Commit the `.timing.js` file.
+
+### Other timing buttons
+
+- **Load** imports one or more `.timing.js` files (or the older `.timing.json` files) into this browser as
+  recordings. You might use it for files a collaborator sent you. Each file names its own movement, so it does not
+  matter which movement is selected. After loading, Save or Export them as above.
+- **Clear** discards this browser's recording for the current movement and goes back to the times in the file. It
+  asks for confirmation first.
+
+## Flow: modifying lyrics
+
+A movement's lyrics exist in only one place: the `.timing.js` file next to its MP3, e.g.
+`assets/AnlunHuang/ChineseRequiem/Chapter1.timing.js`. The app has no other copy. Files such as `Lyrics.txt` are
+source material only, and the app does not read them.
+
+1. Edit the text in the `.timing.js` file. Each lyric line is one row:
+
+   ```javascript
+       {"time":0.1,"text":" ( Prayerfully 以祷告的心 )"},
+       {"time":2.2,"text":"求主"},
+       {"time":null,"text":"赐他们永远"},
+   ```
+
+   - `"time"` is the line's start in seconds, or `null` if the line has not been timed yet.
+   - Each time belongs to the row it is on. When you add or remove a line, add or remove its time with it. A new line
+     can start as `"time":null`.
+   - Keep the file valid JavaScript: rows are separated by commas, with no comma after the last row.
+2. If this browser has a recording for the movement (the panel says `· this browser`), click **Clear**. A recording
+   matches times to lines by **position**, so after lines are added or removed its times would land on the wrong
+   lines.
+3. Reload the page and check the lyrics.
+4. Time any new or changed lines as described in [Flow: timing the lyrics](#flow-timing-the-lyrics).
+
+## Flow: adding an artist, work or movement
+
+All paths in the data files are relative to `index.html`.
+
+### 1. Put the media in place
+
+```
+assets/<Artist>/artist.js
+assets/<Artist>/<Work>/work.js
+assets/<Artist>/<Work>/Chapter1.mp3        # audio
+assets/<Artist>/<Work>/Chapter1.jpg        # picture shown before playback (optional)
+assets/<Artist>/<Work>/Chapter1.timing.js  # lyrics + timing (optional: no file = no lyrics)
+```
+
+### 2. Describe the artist — `assets/<Artist>/artist.js`
+
+```javascript
+/* Artist data for OnePageMP3: loaded by app.js from APP_DATA.artistFiles */
+onePageMp3Artist({
+  id: "anlun-huang",              // unique; used in each .timing.js "composer" field
+  name: "黄安伦",                  // shown in the tree and info pane
+  nameSort: "Huang, An-Lun",      // tree sort key (optional; defaults to name)
+  bio: "黄安伦（1949–），加拿大华人作曲家。",  // kept with the data; not displayed yet
+  workFiles: [
+    "assets/AnlunHuang/ChineseRequiem/work.js"
+  ]
+});
+```
+
+### 3. Describe the work — `assets/<Artist>/<Work>/work.js`
+
+```javascript
+/* Work data for OnePageMP3: loaded by app.js from its artist's workFiles list */
+onePageMp3Work({
+  id: "chinese-requiem",          // unique; used in each .timing.js "work" field
+  title: "安魂曲 (Requiem)",       // shown in the tree, top bar and info pane
+  titleSort: "Chinese Requiem",   // tree sort key (optional; defaults to title)
+  year: 2004,                     // info pane: "title Op. 63 (2004)"
+  opusNumber: "Op. 63",
+  premiered: "Toronto, May 2004", // info pane: "首演: Toronto, May 2004"
+  description: "…",               // info pane; "\n" starts a new line
+  movements: [
+    {
+      id: "ch1",                  // unique within the work; used in the .timing.js "movement" field
+      number: "I",
+      title: "永远安息",
+      subtitle: "诗篇116:7,9",     // lyrics heading, in [brackets] (optional)
+      voicing: "合唱",             // lyrics heading, second line (optional)
+      audio: "assets/AnlunHuang/ChineseRequiem/Chapter1.mp3",
+      thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter1.jpg"   // optional
+    }
+  ]
+});
+```
+
+### 4. Register a new artist in `app.js`
+
+Add the artist's `artist.js` to `APP_DATA.artistFiles` at the top of [app.js](app.js). A new work only needs adding to
+its artist's `workFiles`, and a new movement only to its work's `movements`.
+
+```javascript
+artistFiles: [
+  "assets/AnlunHuang/artist.js",
+  "assets/Mahler/artist.js",
+  "assets/Mozart/artist.js",
+  "assets/<Artist>/artist.js"
+],
+```
+
+### 5. Add the lyrics — `<mp3 name>.timing.js`
+
+Create the file next to the MP3 with every line untimed, then
+[record the timing](#flow-timing-the-lyrics):
+
+```javascript
+onePageMp3Timing({
+  "format": "onepagemp3-lyrics-timing",
+  "version": 1,
+  "composer": "anlun-huang",
+  "work": "chinese-requiem",
+  "movement": "ch1",
+  "audio": "assets/AnlunHuang/ChineseRequiem/Chapter1.mp3",
+  "lines": [
+    {"time":null,"text":"first line"},
+    {"time":null,"text":"second line"}
+  ]
+});
+```
+
+> **The three ids must match exactly.** `"composer"`, `"work"` and `"movement"` must equal the `id` in `artist.js`,
+> the `id` in `work.js` and the movement's `id`. If any of them differs, the app ignores the file, shows **no
+> lyrics**, and logs only a console warning (`… is not the timing of …`).
+
+### 6. Check
+
+Reload the page. The new entries should appear in the tree. If something is missing, open the browser console. A file
+that is missing or broken is skipped with a warning (`Cannot load …`, `… did not call onePageMp3Work(...)`, and so
+on), and the rest of the app keeps working.
+
+## Data files reference
+
+| File | Wrapper call | Holds | Loaded |
+|---|---|---|---|
+| `assets/<Artist>/artist.js` | `onePageMp3Artist({...})` | Artist: id, name, nameSort, bio, workFiles | At startup, from `APP_DATA.artistFiles` |
+| `assets/<Artist>/<Work>/work.js` | `onePageMp3Work({...})` | Work: id, title, titleSort, year, opusNumber, premiered, description, movements | At startup, from the artist's `workFiles` |
+| `<mp3 name>.timing.js` | `onePageMp3Timing({...})` | The movement's lyrics, one `{time, text}` per line | When the movement is first selected |
+
+Each file contains one call to a function that `app.js` defines, so it can be loaded with a `<script>` tag. This works
+from `file://`, where `fetch` does not.
+
+Precedence for times is: the browser recording (`localStorage` key `onepagemp3.timing:<artist id>/<work id>/<movement id>`),
+then the `.timing.js` file, then even spacing. The lyrics **text** always comes from the `.timing.js` file.
+
+## Project structure
+
+```
+index.html                 page markup only
+common.css                 all styles; color variables at the top
+app.js                     all behavior; APP_DATA.artistFiles at the top
+assets/
+  AnlunHuang/              黄安伦 — Chinese Requiem (安魂曲, Op. 63), 8 movements
+    artist.js
+    ChineseRequiem/
+      work.js
+      Chapter1..8.mp3      audio
+      Chapter1..8.jpg      pictures
+      Chapter1..8.timing.js  lyrics + timing
+      Lyrics.txt, *.pdf, *.md  source material and notes (not read by the app)
+  Mahler/, Mozart/         example entries that show the layout for more artists
+                           (their audio and lyrics are placeholder copies of Chinese Requiem I)
+workItems/                 work items: draft / todo / wip / completed / blocked / archived
+CLAUDE.md, CLAUDE_engineering.md   instructions for the AI assistant
+```
+
+## Browser notes
+
+- Use a current version of Chrome, Edge, Firefox or Safari.
+- **Save** straight into a folder, and **Export to MP3 folders**, need the File System Access API (Chrome or Edge).
+  Other browsers download the files instead.
+- Browser recordings are stored **per browser and per origin**. A recording made with the page opened as `file://`
+  is not visible at `http://localhost:…`, and the other way round. It is also not visible in another browser. Save or
+  Export a recording to keep it.
+- Some browsers block audio until you interact with the page. If playback does not start on its own, click ▶.
+
+## Development workflow
+
+Tasks are tracked as Markdown work items under `workItems/` (`draft` → `todo` → `wip` → `completed`, plus `blocked` and
+`archived`). See [CLAUDE_engineering.md](CLAUDE_engineering.md) for the conventions.

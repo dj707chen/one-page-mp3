@@ -4,7 +4,7 @@
 
 ## Description
 
-Extend `APP_DATA.composers` in `index.html` with works for Mahler and Mozart once their audio files and lyrics are available. The `assets/` directory already has subdirectories for these composers (currently empty).
+Extend `APP_DATA.artists` in `app.js` with works for Mahler and Mozart once their audio files and lyrics are available. The `assets/` directory already has subdirectories for these composers (currently empty).
 
 ## Pre-requisites
 
@@ -14,7 +14,7 @@ Extend `APP_DATA.composers` in `index.html` with works for Mahler and Mozart onc
 ## Steps
 
 1. Populate `assets/Mahler/` and `assets/Mozart/` with MP3 files
-2. Add composer entries to `APP_DATA.composers` in `index.html`, following the existing structure:
+2. Add composer entries to `APP_DATA.artists` in `app.js`, following the existing structure:
    ```js
    {
      name: "Wolfgang Amadeus Mozart",

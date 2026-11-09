@@ -7,6 +7,10 @@ onePageMp3Timing({
   "audio": "assets/AnlunHuang/ChineseRequiem/Chapter7.mp3",
   "saved": "2026-11-08T22:46:50.164Z",
   "lines": [
+    {"time":null,"text":"Hallelujah, Hallelujah!"},
+    {"time":null,"text":"Hallelujah, Hallelujah!"},
+    {"time":null,"text":"Hallelujah, Hallelujah!"},
+    {"time":null,"text":"Hallelujah! 主啊！"},
     {"time":null,"text":"Hallelujah! 主啊！"},
     {"time":null,"text":"愿永远的光照耀他们，"},
     {"time":null,"text":"在宁静高天传出喜讯："},
@@ -15,6 +19,7 @@ onePageMp3Timing({
     {"time":null,"text":"工作的果效随着他们。"},
     {"time":null,"text":"愿永远的光照耀他们，"},
     {"time":null,"text":"在崇高天庭突有角声，"},
+    {"time":null,"text":"主必亲自降临，"},
     {"time":null,"text":"主必亲自降临，"},
     {"time":null,"text":"角声中有天使长的声音，"},
     {"time":null,"text":"那在基督里死了的人必先复活，"},

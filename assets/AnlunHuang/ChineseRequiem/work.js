@@ -6,7 +6,7 @@ onePageMp3Work({
   year: 2004,
   opusNumber: "Op. 63",
   premiered: "Toronto, May 2004",
-  description: "为男高音、女中音及无伴奏合唱而作的安魂曲（Op.63），共8个乐章，由香港圣乐团委约。\n词：唐佑之（根据圣经）。曲：黄安伦。",
+  description: "为男高音、女中音及无伴奏合唱而作的安魂曲（Op.63），共8个乐章，由香港圣乐团委约。\n词：唐佑之（根据圣经），曲：黄安伦。",
   movements: [
     {
       id: "ch1",

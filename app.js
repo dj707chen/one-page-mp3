@@ -1,9 +1,12 @@
 /* ================================================================
    APP DATA
    Structure: artists[] > works[] > movements[]
-   A work's data is not here: it is read from the work.js file in its
-   assets folder, listed in its artist's workFiles (see WORK FILES), and
-   becomes artist.works = [work, ...] once loaded.
+   An artist's data is not here: it is read from the artist.js file in
+   its assets folder, listed in artistFiles (see ARTIST AND WORK FILES),
+   and becomes APP_DATA.artists = [artist, ...] once loaded.
+   Likewise a work's data is read from the work.js file in its assets
+   folder, listed in its artist's workFiles, and becomes
+   artist.works = [work, ...] once loaded.
    A movement's lyrics are not here: they are read from the .timing.js
    file next to its audio (see LYRICS TIMING), and become
    movement.lyrics = [{ text }] once loaded.
@@ -12,33 +15,33 @@
 ================================================================ */
 const APP_DATA = {
   version: "1.0",
-  artists: [
-    {
-      id: "anlun-huang",
-      name: "黄安伦",
-      nameSort: "Huang, An-Lun",
-      bio: "黄安伦（1949–），加拿大华人作曲家。",
-      workFiles: [
-        "assets/AnlunHuang/ChineseRequiem/work.js"
-      ]
-    }
-    /* Add more artists here following the same structure */
-  ]
+  artistFiles: [
+    "assets/AnlunHuang/artist.js",
+    "assets/Mahler/artist.js",
+    "assets/Mozart/artist.js"
+    /* Add more artists' artist.js files here */
+  ],
+  artists: []  // filled from artistFiles
 };
 
 /* ================================================================
-   WORK FILES
-   A work.js file holds one work (title, description, movements, ...)
-   wrapped in one onePageMp3Work(...) call, so a <script> can load it
-   when the page is opened as file:// (fetch of local files is blocked).
+   ARTIST AND WORK FILES
+   An artist.js file holds one artist (name, bio, workFiles, ...) wrapped
+   in one onePageMp3Artist(...) call; a work.js file holds one work
+   (title, description, movements, ...) wrapped in one onePageMp3Work(...)
+   call. So a <script> can load them when the page is opened as file://
+   (fetch of local files is blocked).
 ================================================================ */
-const WORK_CALLBACK = 'onePageMp3Work';  // what a work.js file calls
-const loadedWorks   = new Map();         // <script> element -> the work it handed over
+const ARTIST_CALLBACK = 'onePageMp3Artist';  // what an artist.js file calls
+const WORK_CALLBACK   = 'onePageMp3Work';    // what a work.js file calls
+const loadedData      = new Map();           // <script> element -> { callback, data } it handed over
 
-window[WORK_CALLBACK] = work => loadedWorks.set(document.currentScript, work);
+window[ARTIST_CALLBACK] = data => loadedData.set(document.currentScript, { callback: ARTIST_CALLBACK, data });
+window[WORK_CALLBACK]   = data => loadedData.set(document.currentScript, { callback: WORK_CALLBACK, data });
 
-// Run one work.js file. Resolves to its work, or null if the file is missing or broken.
-function loadWorkFile(url) {
+// Run one artist.js or work.js file, which must call `callback`.
+// Resolves to the data it handed over, or null if the file is missing or broken.
+function loadDataFile(url, callback) {
   return new Promise(resolve => {
     const script = document.createElement('script');
     script.src = url + (location.protocol === 'file:' ? '' : `?t=${Date.now()}`);
@@ -49,19 +52,25 @@ function loadWorkFile(url) {
     };
     script.onload = () => {
       script.remove();
-      const work = loadedWorks.get(script);
-      loadedWorks.delete(script);
-      if (!work) console.warn(`${url} did not call ${WORK_CALLBACK}(...)`);
-      resolve(work ?? null);
+      const loaded = loadedData.get(script);
+      loadedData.delete(script);
+      if (loaded?.callback !== callback) console.warn(`${url} did not call ${callback}(...)`);
+      resolve(loaded?.callback === callback ? loaded.data : null);
     };
     document.head.append(script);
   });
 }
 
-// Fill each artist's works from its workFiles, keeping the listed order
-async function loadWorks() {
+// Load all files listed in urls, keeping the listed order and dropping those that fail
+async function loadDataFiles(urls, callback) {
+  return (await Promise.all((urls ?? []).map(url => loadDataFile(url, callback)))).filter(Boolean);
+}
+
+// Fill APP_DATA.artists from artistFiles, then each artist's works from its workFiles
+async function loadArtists() {
+  APP_DATA.artists = await loadDataFiles(APP_DATA.artistFiles, ARTIST_CALLBACK);
   await Promise.all(APP_DATA.artists.map(async artist => {
-    artist.works = (await Promise.all((artist.workFiles ?? []).map(loadWorkFile))).filter(Boolean);
+    artist.works = await loadDataFiles(artist.workFiles, WORK_CALLBACK);
   }));
 }
 
@@ -1018,7 +1027,7 @@ function escHtml(str) {
    INIT
 ================================================================ */
 setHighlightMode(state.highlightMode);
-loadWorks().then(() => {
+loadArtists().then(() => {
   buildFlatList();
   buildTree();
   updateNavButtons();

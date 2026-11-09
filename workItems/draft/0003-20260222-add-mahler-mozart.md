@@ -4,7 +4,7 @@
 
 ## Description
 
-Add Mahler and Mozart (artist entries in `APP_DATA.artists` in `app.js`, plus a `work.js` per work in its assets folder) once their audio files and lyrics are available. The `assets/` directory already has subdirectories for these composers (currently empty).
+Add Mahler and Mozart (an `artist.js` per artist and a `work.js` per work, in their assets folders, with each `artist.js` listed in `APP_DATA.artistFiles` in `app.js`) once their audio files and lyrics are available. The `assets/` directory already has subdirectories for these composers (currently empty).
 
 ## Pre-requisites
 
@@ -29,15 +29,17 @@ Add Mahler and Mozart (artist entries in `APP_DATA.artists` in `app.js`, plus a 
    });
    ```
    Each movement's lyrics go in `Chapter1.timing.js` next to its MP3, not in `work.js`.
-3. Add an artist entry to `APP_DATA.artists` in `app.js` that lists those files:
+3. For each artist, create `artist.js` in the artist's assets folder (e.g. `assets/Mozart/artist.js`) that lists
+   those work files, following `assets/AnlunHuang/artist.js`:
    ```js
-   {
+   onePageMp3Artist({
      id: "mozart",
      name: "Wolfgang Amadeus Mozart",
      nameSort: "Mozart, Wolfgang Amadeus",
      workFiles: ["assets/Mozart/<Work>/work.js"]
-   }
+   });
    ```
+   Then add `"assets/Mozart/artist.js"` to `APP_DATA.artistFiles` in `app.js`.
 4. Verify the left nav tree lists all composers in ascending alphabetical order (the UI sorts automatically)
 5. Test playback and lyrics display for each new work
 

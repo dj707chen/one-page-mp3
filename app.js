@@ -1,6 +1,9 @@
 /* ================================================================
    APP DATA
    Structure: artists[] > works[] > movements[]
+   A work's data is not here: it is read from the work.js file in its
+   assets folder, listed in its artist's workFiles (see WORK FILES), and
+   becomes artist.works = [work, ...] once loaded.
    A movement's lyrics are not here: they are read from the .timing.js
    file next to its audio (see LYRICS TIMING), and become
    movement.lyrics = [{ text }] once loaded.
@@ -15,95 +18,52 @@ const APP_DATA = {
       name: "黄安伦",
       nameSort: "Huang, An-Lun",
       bio: "黄安伦（1949–），加拿大华人作曲家。",
-      works: [
-        {
-          id: "chinese-requiem",
-          title: "安魂曲 (Requiem)",
-          titleSort: "Chinese Requiem",
-          year: 2004,
-          opusNumber: "Op. 63",
-          premiered: "Toronto, May 2004",
-          description: "为男高音、女中音及无伴奏合唱而作的安魂曲（Op.63），共8个乐章，由香港圣乐团委约。\n词：唐佑之（根据圣经）。曲：黄安伦。",
-          movements: [
-            {
-              id: "ch1",
-              number: "I",
-              title: "永远安息",
-              subtitle: "诗篇116:7,9",
-              voicing: "合唱",
-              audio: "assets/AnlunHuang/ChineseRequiem/Chapter1.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter1.jpg"
-            },
-            {
-              id: "ch2",
-              number: "II",
-              title: "深处祷告",
-              subtitle: "诗篇130，启示录21:4",
-              voicing: "女中音独唱与合唱",
-              audio: "assets/AnlunHuang/ChineseRequiem/Chapter2.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter2.jpg"
-            },
-            {
-              id: "ch3",
-              number: "III",
-              title: "称颂耶稣",
-              subtitle: "腓立比书4:6-11；哥林多前书15:55-56；希伯来书11:13-16；12:1,2",
-              voicing: "合唱",
-              audio: "assets/AnlunHuang/ChineseRequiem/Chapter3.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter3.jpg"
-            },
-            {
-              id: "ch4",
-              number: "IV",
-              title: "圣洁颂歌",
-              subtitle: "以赛亚书6:3；希伯来书12:2；启示录4:4",
-              voicing: "合唱",
-              audio: "assets/AnlunHuang/ChineseRequiem/Chapter4.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter4.jpg"
-            },
-            {
-              id: "ch5",
-              number: "V",
-              title: "羔羊赞颂",
-              subtitle: "启示录1:18；5:12-13；14:1-4；15:3-4",
-              voicing: "男高音、女中音领唱，合唱",
-              audio: "assets/AnlunHuang/ChineseRequiem/Chapter5.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter5.jpg"
-            },
-            {
-              id: "ch6",
-              number: "VI",
-              title: "永享自由",
-              subtitle: "启示录1:18；5:12-13；14:1-4；15:3-4；葛里高利圣咏639",
-              voicing: "男高音独唱，合唱",
-              audio: "assets/AnlunHuang/ChineseRequiem/Chapter6.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter6.jpg"
-            },
-            {
-              id: "ch7",
-              number: "VII",
-              title: "永远照耀",
-              subtitle: "以赛亚书60:1-2；启示录15:13；帖撒罗尼迦前书4:15-18",
-              voicing: "男高音、女中音领唱，合唱",
-              audio: "assets/AnlunHuang/ChineseRequiem/Chapter7.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter7.jpg"
-            },
-            {
-              id: "ch8",
-              number: "VIII",
-              title: "诗篇二十三",
-              subtitle: "诗篇23",
-              voicing: "男高音、女中音领唱，合唱",
-              audio: "assets/AnlunHuang/ChineseRequiem/Chapter8.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter8.jpg"
-            }
-          ]
-        }
+      workFiles: [
+        "assets/AnlunHuang/ChineseRequiem/work.js"
       ]
     }
     /* Add more artists here following the same structure */
   ]
 };
+
+/* ================================================================
+   WORK FILES
+   A work.js file holds one work (title, description, movements, ...)
+   wrapped in one onePageMp3Work(...) call, so a <script> can load it
+   when the page is opened as file:// (fetch of local files is blocked).
+================================================================ */
+const WORK_CALLBACK = 'onePageMp3Work';  // what a work.js file calls
+const loadedWorks   = new Map();         // <script> element -> the work it handed over
+
+window[WORK_CALLBACK] = work => loadedWorks.set(document.currentScript, work);
+
+// Run one work.js file. Resolves to its work, or null if the file is missing or broken.
+function loadWorkFile(url) {
+  return new Promise(resolve => {
+    const script = document.createElement('script');
+    script.src = url + (location.protocol === 'file:' ? '' : `?t=${Date.now()}`);
+    script.onerror = () => {
+      script.remove();
+      console.warn(`Cannot load ${url}`);
+      resolve(null);
+    };
+    script.onload = () => {
+      script.remove();
+      const work = loadedWorks.get(script);
+      loadedWorks.delete(script);
+      if (!work) console.warn(`${url} did not call ${WORK_CALLBACK}(...)`);
+      resolve(work ?? null);
+    };
+    document.head.append(script);
+  });
+}
+
+// Fill each artist's works from its workFiles, keeping the listed order
+async function loadWorks() {
+  await Promise.all(APP_DATA.artists.map(async artist => {
+    artist.works = (await Promise.all((artist.workFiles ?? []).map(loadWorkFile))).filter(Boolean);
+  }));
+}
 
 /* ================================================================
    CONFIGURATION — apply URL params to CSS custom properties
@@ -1057,8 +1017,10 @@ function escHtml(str) {
 /* ================================================================
    INIT
 ================================================================ */
-buildFlatList();
-buildTree();
-updateNavButtons();
 setHighlightMode(state.highlightMode);
-updateTimingPanel();
+loadWorks().then(() => {
+  buildFlatList();
+  buildTree();
+  updateNavButtons();
+  updateTimingPanel();
+});

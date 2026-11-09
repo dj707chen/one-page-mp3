@@ -212,23 +212,24 @@
       flex: 1;
       text-align: center;
       min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     #np-label {
       font-size: 0.72rem;
       color: var(--accent);
-      display: block;
       letter-spacing: 0.04em;
     }
 
     #np-title {
       font-size: 0.95rem;
       color: var(--text-primary);
-      display: block;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
     }
+
+    /* Space between work name and movement title (none while no song is selected) */
+    #np-label:not(:empty) + #np-title { margin-left: 2.5em; }
 
     /* ─── Song Display (lyrics area) ─── */
     #song-display {
@@ -428,7 +429,7 @@
       margin-right: 2px;
     }
 
-    /* Pressed state for toggle buttons (highlight mode, maximize) */
+    /* Pressed state for toggle buttons (highlight mode) */
     .ctrl-btn.active {
       background: var(--nav-active);
       color: var(--text-primary);
@@ -485,13 +486,15 @@
       font-size: 0.78rem;
       color: var(--text-muted);
       line-height: 1.65;
+      white-space: pre-line;
       flex: 1;
     }
 
     /* ─── Maximized lyrics panel: hide nav + info panes, enlarge lyrics ─── */
     #app.lyrics-maximized { grid-template-columns: 1fr; }
     #app.lyrics-maximized #left-pane,
-    #app.lyrics-maximized #info-pane { display: none; }
+    #app.lyrics-maximized #info-pane,
+    #app.lyrics-maximized #top-controls > :not(#now-playing) { display: none; }
     #app.lyrics-maximized #right-pane { grid-template-rows: auto 1fr auto; }
     #app.lyrics-maximized .lyric-meta { font-size: 1rem; }
     #app.lyrics-maximized .lyric-line { font-size: 2.7rem; }
@@ -550,7 +553,7 @@
         <span id="np-label"></span>
         <span id="np-title">Select a movement to begin</span>
       </div>
-      <button class="ctrl-btn" id="btn-maximize" title="Maximize lyrics panel" aria-pressed="false">&#x2922; Maximize</button>
+      <button class="ctrl-btn" id="btn-maximize" title="Maximize lyrics panel (Esc to restore)">&#x2922; Maximize</button>
       <button class="ctrl-btn" id="btn-next">Next &#9654;</button>
     </div>
 
@@ -612,18 +615,18 @@ const APP_DATA = {
   composers: [
     {
       id: "anlun-huang",
-      name: "黄安伦 (An-Lun Huang)",
+      name: "黄安伦",
       nameSort: "Huang, An-Lun",
       bio: "黄安伦（1949–），加拿大华人作曲家。",
       works: [
         {
           id: "chinese-requiem",
-          title: "中文安魂曲 (Chinese Requiem)",
+          title: "安魂曲 (Requiem)",
           titleSort: "Chinese Requiem",
           year: 2004,
           opusNumber: "Op. 63",
-          premiered: "多伦多, 2004年5月",
-          description: "为男高音、女中音及无伴奏合唱而作的安魂曲（Op.63），共8个乐章，由香港圣乐团委约。词：唐佑之（根据圣经）。曲：黄安伦，2004年5月，多伦多。此曲被誉为迄今为止唯一的中文安魂曲。",
+          premiered: "Toronto, May 2004",
+          description: "为男高音、女中音及无伴奏合唱而作的安魂曲（Op.63），共8个乐章，由香港圣乐团委约。\n词：唐佑之（根据圣经）。曲：黄安伦。",
           movements: [
             {
               id: "ch1",
@@ -836,8 +839,7 @@ function loadMovement(composer, work, movement, autoplay = false) {
   });
 
   // Update now-playing header
-  document.getElementById('np-label').textContent =
-    `${escHtml(composer.name)}  —  ${escHtml(work.title)}`;
+  document.getElementById('np-label').textContent = work.title;
   document.getElementById('np-title').textContent =
     `${movement.number}. ${movement.title}`;
 
@@ -1024,18 +1026,20 @@ document.querySelectorAll('#mode-toggle .ctrl-btn').forEach(btn => {
 
 /* ================================================================
    MAXIMIZE LYRICS PANEL
-   Hides the left nav pane and the info pane; lyrics font grows (CSS)
+   Hides the left nav pane, the info pane and the top-panel buttons
+   (including Maximize itself); lyrics font grows (CSS). Esc restores.
 ================================================================ */
-document.getElementById('btn-maximize').addEventListener('click', e => {
-  const btn = e.currentTarget;
-  const on  = document.getElementById('app').classList.toggle('lyrics-maximized');
-  btn.classList.toggle('active', on);
-  btn.setAttribute('aria-pressed', on);
-  btn.innerHTML = on ? '&#x2921; Restore' : '&#x2922; Maximize';
-  btn.title     = on ? 'Restore normal layout' : 'Maximize lyrics panel';
-  btn.blur();
+function setLyricsMaximized(on) {
+  const app = document.getElementById('app');
+  if (app.classList.contains('lyrics-maximized') === on) return;
+  app.classList.toggle('lyrics-maximized', on);
   // Re-center after the lyric font-size transition (0.3s) settles
   setTimeout(centerCurrentLine, 350);
+}
+
+document.getElementById('btn-maximize').addEventListener('click', e => {
+  e.currentTarget.blur();
+  setLyricsMaximized(true);
 });
 
 /* ================================================================
@@ -1565,6 +1569,7 @@ document.getElementById('btn-next').addEventListener('click', () => {
    KEYBOARD SHORTCUTS
    Both modes:
      Space:            Play / Pause
+     Esc:              Leave maximized lyrics panel
    Auto mode:
      Left/Right:       ±5 seconds
      Shift+Left/Right: ±15 seconds
@@ -1578,6 +1583,11 @@ document.addEventListener('keydown', e => {
   const t = e.target;
   // Range inputs (progress bar) keep focus after dragging; don't let them swallow keys
   if (t.tagName === 'TEXTAREA' || (t.tagName === 'INPUT' && t.type !== 'range')) return;
+
+  if (e.code === 'Escape') {
+    setLyricsMaximized(false);
+    return;
+  }
 
   if (state.highlightMode === 'manual' && e.code in MANUAL_KEYS) {
     if (!e.metaKey && !e.ctrlKey && !e.altKey) {

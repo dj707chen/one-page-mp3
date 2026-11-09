@@ -77,7 +77,7 @@ async function loadArtists() {
 /* ================================================================
    CONFIGURATION — apply URL params to CSS custom properties
    Example: index.html?above-color=%238888aa&below-bg=rgba(0,0,0,0.2)
-   Lyrics highlight mode: index.html?highlight-mode=auto  (default: manual)
+   Lyrics highlight mode: index.html?highlight-mode=manual  (default: auto)
 ================================================================ */
 (function applyConfig() {
   const params = new URLSearchParams(window.location.search);
@@ -103,8 +103,8 @@ const state = {
   isPlaying:    false,
   lastLyricIdx: -1,
   allMovements: [],  // flat list for prev/next
-  highlightMode: new URLSearchParams(window.location.search).get('highlight-mode') === 'auto'
-                 ? 'auto' : 'manual'
+  highlightMode: new URLSearchParams(window.location.search).get('highlight-mode') === 'manual'
+                 ? 'manual' : 'auto'
 };
 
 const audio = document.getElementById('audio');

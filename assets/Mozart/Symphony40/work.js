@@ -11,9 +11,9 @@ onePageMp3Work({
     {
       id: "ch1",
       number: "I",
-      title: "Movement 1",
-      subtitle: "诗篇116:7,9",
-      voicing: "合唱",
+      title: "Molto allegro",
+      subtitle: "G小调",
+      voicing: "管弦乐",
       audio: "assets/Mozart/Symphony40/Chapter1.mp3",
       thumbnail: "assets/Mozart/Symphony40/Chapter1.jpg"
     }

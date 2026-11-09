@@ -169,7 +169,7 @@ function buildTree() {
       work.movements.forEach(movement => {
         const movEl = document.createElement('div');
         movEl.className = 'tree-movement';
-        movEl.dataset.id = movement.id;
+        movEl.dataset.key = movementKey(movement);  // movement ids are only unique within a work
         movEl.textContent = `${movement.number}. ${movement.title}`;
         movEl.addEventListener('click', () => loadMovement(composer, work, movement));
         movementsEl.appendChild(movEl);
@@ -191,7 +191,7 @@ function buildTree() {
 ================================================================ */
 function loadMovement(composer, work, movement, autoplay = false) {
   // Update state
-  const flatEntry = state.allMovements.find(m => m.data.id === movement.id);
+  const flatEntry = movementEntry(movement);
   if (flatEntry) {
     state.composerIdx  = flatEntry.composerIdx;
     state.workIdx      = flatEntry.workIdx;
@@ -201,7 +201,7 @@ function loadMovement(composer, work, movement, autoplay = false) {
 
   // Highlight active tree node
   document.querySelectorAll('.tree-movement').forEach(el => {
-    el.classList.toggle('active', el.dataset.id === movement.id);
+    el.classList.toggle('active', el.dataset.key === movementKey(movement));
   });
 
   // Update now-playing header
@@ -993,7 +993,7 @@ function currentMovement() {
 function currentFlatIdx() {
   const m = currentMovement();
   if (!m) return -1;
-  return state.allMovements.findIndex(e => e.data.id === m.id);
+  return state.allMovements.findIndex(e => e.data === m);
 }
 
 function updateNavButtons() {

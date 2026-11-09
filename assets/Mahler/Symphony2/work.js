@@ -11,9 +11,9 @@ onePageMp3Work({
     {
       id: "ch1",
       number: "I",
-      title: "Move 1",
-      subtitle: "subtitle for Movement 1",
-      voicing: "orchestra",
+      title: "Allegro maestoso",
+      subtitle: "Mit durchaus ernstem und feierlichem Ausdruck",
+      voicing: "Orchestra",
       audio: "assets/Mahler/Symphony2/Chapter1.mp3",
       thumbnail: "assets/Mahler/Symphony2/Chapter1.jpg"
     }

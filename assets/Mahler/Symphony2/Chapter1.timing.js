@@ -2,7 +2,7 @@ onePageMp3Timing({
   "format": "onepagemp3-lyrics-timing",
   "version": 1,
   "composer": "mahler",
-  "work": "symphony2",
+  "work": "mahler-symphony2",
   "movement": "ch1",
   "audio": "assets/Mahler/Symphony2/Chapter1.mp3",
   "saved": "2026-11-08T20:32:40.799Z",

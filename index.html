@@ -600,10 +600,12 @@
 <script>
 /* ================================================================
    APP DATA
-   Structure: composers[] > works[] > movements[] > lyrics[]
-   Lyrics entry: { text: "...", time: <seconds> }   (time optional)
-   Auto mode highlights by recorded timing (see LYRICS TIMING), else
-   by 'time' fields, else by linear interpolation (approximate sync).
+   Structure: composers[] > works[] > movements[]
+   A movement's lyrics are not here: they are read from the .timing.js
+   file next to its audio (see LYRICS TIMING), and become
+   movement.lyrics = [{ text }] once loaded.
+   Auto mode highlights by the timing in that file (or recorded in this
+   browser), else by linear interpolation (approximate sync).
 ================================================================ */
 const APP_DATA = {
   version: "1.0",
@@ -630,69 +632,7 @@ const APP_DATA = {
               subtitle: "诗篇116:7,9",
               voicing: "合唱",
               audio: "assets/AnlunHuang/ChineseRequiem/Chapter1.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter1.jpg",
-              lyrics: [
-                { text: " ( Prayerfully 以祷告的心 ) " },
-                { text: "求主" },
-                { text: "赐他们永远" },
-                { text: "永远安息，" },
-                { text: "安息在您怀里!" },
-                { text: "安息在您怀里。" },
-
-                { text: "求主" },
-                { text: "赐他们永远" },
-                { text: "永远安息，" },
-                { text: "安息在您怀里!" },
-                { text: "求主赐他们永远" },
-                { text: "安息，永远安息，" },
-                { text: "安息在您怀里!" },
-                { text: "安息在您怀里。" },
-
-                { text: "唯有耶和华所亲爱的,(女)" },
-                { text: "唯有耶和华所亲爱的;" },
-                { text: "唯有耶和华所亲爱的,(男)" },
-                { text: "唯有耶和华所亲爱的;" },
-                { text: "唯有耶和华所亲爱的,(女)" },
-                { text: "唯有耶和华所亲爱的;" },
-                { text: "唯有耶和华所亲爱的,(男)" },
-                { text: "唯有耶和华所亲爱的;" },
-                { text: "必让他们安睡。" },
-                { text: "必让他们安睡，" },
-                { text: "让他们都安睡。" },
-                { text: "唯有耶和华所亲爱的，" },
-                { text: "必让他们都安睡。" },
-
-                { text: "阳光-" },
-                { text: "阳光永温煦地照耀，" },
-                { text: "轻风常吹拂地爱抚，" },
-                { text: "轻风-" },
-                { text: "轻风，" },
-                { text: "阳光永温煦地照耀，" },
-                { text: "轻风常吹拂地爱抚," },
-                { text: "花香-" },
-                { text: "花香弥漫发放芳馨，" },
-                { text: "天使歌咏轻快活泼。" },
-                { text: "天使-" },
-                { text: "天使，" },
-                { text: "花香弥漫发放芳馨，" },
-                { text: "天使歌咏轻快活泼。" },
-                { text: "求主赐他们永远，" },
-                { text: "永远安息在您怀里！" },
-                { text: "求主赐他们永远，" },
-                { text: "永远安息在您怀里！" },
-                { text: "求主赐他们安息，" },
-                { text: "求主赐他们安息。" },
-
-                { text: "安息在您怀里，" },
-                { text: "安息。" },
-                { text: "安息在您怀里。" },
-
-                { text: "求主" },
-                { text: "赐他们永远" },
-                { text: "永远安息，" },
-                { text: "安息在您怀里！" },
-                { text: "安息在您怀里。" }
-              ]
+              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter1.jpg"
             },
             {
               id: "ch2",
@@ -701,34 +641,7 @@ const APP_DATA = {
               subtitle: "诗篇130，启示录21:4",
               voicing: "女中音独唱与合唱",
               audio: "assets/AnlunHuang/ChineseRequiem/Chapter2.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter2.jpg",
-              lyrics: [
-                { text: "主啊，" },
-                { text: "我在深处求告，" },
-                { text: "主啊，" },
-                { text: "我在深处求告，" },
-                { text: "求主，求主，" },
-                { text: "垂听我恳切的心声！" },
-                { text: "愿您俯首倾耳静听。" },
-                { text: "主啊，" },
-                { text: "我在深处求告，" },
-                { text: "求主垂听我恳切的心声！" },
-                { text: "愿您俯首倾耳静听。" },
-                { text: "您赦罪之宏恩大爱，" },
-                { text: "只使我敬畏的心油然而生。" },
-                { text: "我心切实听候主叮咛，" },
-                { text: "我灵隐秘如深渊，" },
-                { text: "响应主恩。" },
-                { text: "夜正深沉，" },
-                { text: "在这漫漫长夜里，" },
-                { text: "我守望，" },
-                { text: "我等候。" },
-                { text: "复活的黎明终将来临，" },
-                { text: "永在您爱中，" },
-                { text: "从今到永远，" },
-                { text: "蒙恩惠，" },
-                { text: "得安慰。" }
-              ]
+              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter2.jpg"
             },
             {
               id: "ch3",
@@ -737,26 +650,7 @@ const APP_DATA = {
               subtitle: "腓立比书4:6-11；哥林多前书15:55-56；希伯来书11:13-16；12:1,2",
               voicing: "合唱",
               audio: "assets/AnlunHuang/ChineseRequiem/Chapter3.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter3.jpg",
-              lyrics: [
-                { text: "耶稣，耶稣，" },
-                { text: "我称颂您！" },
-                { text: "生命之主，" },
-                { text: "永远怜悯，" },
-                { text: "让他们安息，" },
-                { text: "永远的安息，" },
-                { text: "安息在您怀里！" },
-                { text: "耶稣，耶稣，" },
-                { text: "我称颂您！" },
-                { text: "奇妙的救赎，" },
-                { text: "永世无穷，" },
-                { text: "永在天家，" },
-                { text: "永享福乐，" },
-                { text: "永远国度，" },
-                { text: "永远平安，" },
-                { text: "永远歌唱，" },
-                { text: "称颂永远。" },
-              ]
+              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter3.jpg"
             },
             {
               id: "ch4",
@@ -765,22 +659,7 @@ const APP_DATA = {
               subtitle: "以赛亚书6:3；希伯来书12:2；启示录4:4",
               voicing: "合唱",
               audio: "assets/AnlunHuang/ChineseRequiem/Chapter4.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter4.jpg",
-              lyrics: [
-                { text: "全能的神，" },
-                { text: "永在的父，" },
-                { text: "慈悲的主！" },
-                { text: "天上人间充满您大荣光，" },
-                { text: "圣洁公义从地直达高天，" },
-                { text: "惟独您！" },
-                { text: "以色列的至圣者！" },
-                { text: "圣约之神，" },
-                { text: "信心创始成终的主！" },
-                { text: "圣约之民，" },
-                { text: "虔诚忠信恒常，" },
-                { text: "万民都要在您面前敬拜，" },
-                { text: "圣哉！圣哉！圣哉！" }
-              ]
+              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter4.jpg"
             },
             {
               id: "ch5",
@@ -789,35 +668,7 @@ const APP_DATA = {
               subtitle: "启示录1:18；5:12-13；14:1-4；15:3-4",
               voicing: "男高音、女中音领唱，合唱",
               audio: "assets/AnlunHuang/ChineseRequiem/Chapter5.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter5.jpg",
-              lyrics: [
-                { text: "看哪！" },
-                { text: "神的羔羊在宝座，" },
-                { text: "他曾死过，" },
-                { text: "现在又活了；" },
-                { text: "看哪！" },
-                { text: "神的羔羊在宝座，" },
-                { text: "他曾死过，" },
-                { text: "现在又活了，" },
-                { text: "直活到永永远远，" },
-                { text: "直活到永永远远，" },
-                { text: "直活到永永远远，" },
-                { text: "直活到永永远远，" },
-                { text: "拿着死亡和阴间的钥匙。" },
-                { text: "他曾受苦；" },
-                { text: "为我们受罪刑；" },
-                { text: "代我们替死亡；" },
-                { text: "救我们出黑暗。" },
-                { text: "神的羔羊，" },
-                { text: "我们歌颂您，" },
-                { text: "万主之主，" },
-                { text: "万王之王！" },
-                { text: "羔羊之歌不住洋溢在高空。" },
-                { text: "羔羊之歌不住洋溢在高空。" },
-                { text: "羔羊之歌不住洋溢在高空。" },
-                { text: "羔羊之歌不住洋溢在高空。" },
-                { text: "羔羊之歌不住洋溢在高空。" }
-              ]
+              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter5.jpg"
             },
             {
               id: "ch6",
@@ -826,26 +677,7 @@ const APP_DATA = {
               subtitle: "启示录1:18；5:12-13；14:1-4；15:3-4；葛里高利圣咏639",
               voicing: "男高音独唱，合唱",
               audio: "assets/AnlunHuang/ChineseRequiem/Chapter6.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter6.jpg",
-              lyrics: [
-                { text: "求主释放我得自由，" },
-                { text: "释放我肉身不受病痛，" },
-                { text: "释放我心灵不再惧怕，" },
-                { text: "释放我思想时空局限，" },
-                { text: "您曾救我的眼免了眼泪；" },
-                { text: "救我的脚免了跌倒；" },
-                { text: "救我的命免了死亡。" },
-                { text: "今在自由中永与主相交，" },
-                { text: "如鹰展翅上腾翱翔太空，" },
-                { text: "如雁飞向南方结成群体，" },
-                { text: "与亲爱的相聚永不分离。" },
-                { text: "葛里高利圣咏639《在天堂》：" },
-                { text: "（意译）天使和殉道的圣徒都在天堂迎接他们，" },
-                { text: "（意译）并把他们带到圣城耶路撒冷，" },
-                { text: "（意译）在那里有天使的合唱。" },
-                { text: "（意译）与昔日的丐者拉撒路，" },
-                { text: "（意译）他们将得到永远的安息。" }
-              ]
+              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter6.jpg"
             },
             {
               id: "ch7",
@@ -854,25 +686,7 @@ const APP_DATA = {
               subtitle: "以赛亚书60:1-2；启示录15:13；帖撒罗尼迦前书4:15-18",
               voicing: "男高音、女中音领唱，合唱",
               audio: "assets/AnlunHuang/ChineseRequiem/Chapter7.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter7.jpg",
-              lyrics: [
-                { text: "Hallelujah! 主啊！" },
-                { text: "愿永远的光照耀他们，" },
-                { text: "在宁静高天传出喜讯：" },
-                { text: "那在主里死的人有福了，" },
-                { text: "他们息了地上一切劳苦，" },
-                { text: "工作的果效随着他们。" },
-                { text: "愿永远的光照耀他们，" },
-                { text: "在崇高天庭突有角声，" },
-                { text: "主必亲自降临，" },
-                { text: "角声中有天使长的声音，" },
-                { text: "那在基督里死了的人必先复活，" },
-                { text: "还在地上存留的人必被提到云里，" },
-                { text: "在空中与主相遇，" },
-                { text: "主必永远同在。" },
-                { text: "愿永远的光照耀他们，" },
-                { text: "永远！永远！" }
-              ]
+              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter7.jpg"
             },
             {
               id: "ch8",
@@ -881,37 +695,7 @@ const APP_DATA = {
               subtitle: "诗篇23",
               voicing: "男高音、女中音领唱，合唱",
               audio: "assets/AnlunHuang/ChineseRequiem/Chapter8.mp3",
-              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter8.jpg",
-              lyrics: [
-                { text: "耶和华是我的牧者，" },
-                { text: "我必不至缺乏，" },
-                { text: "耶和华是我的牧者，" },
-                { text: "我必不至缺乏，" },
-                { text: "耶和华是我的牧者，" },
-                { text: "我必不至缺乏，" },
-                { text: "我必不至缺乏，" },
-                { text: "耶和华是我的牧者，" },
-                { text: "我必不至缺乏，" },
-                { text: "他使我躺卧在，" },
-                { text: "躺卧在青草地上，" },
-                { text: "领我在可安歇的水边。" },
-                { text: "他使我的灵魂苏醒，" },
-                { text: "为自己的名引导我走义路。" },
-                { text: "我虽然行过死阴的幽谷，" },
-                { text: "也不怕遭害，" },
-                { text: "因为你与我同在。" },
-                { text: "你的杖，你的竿，都安慰我。" },
-                { text: "在我敌人面前，" },
-                { text: "你为我摆设筵席，" },
-                { text: "你用油膏了我的头，" },
-                { text: "使我福杯满溢。" },
-                { text: "我一生一世必有恩惠慈爱随着我。" },
-                { text: "我且要住在耶和华的殿中，" },
-                { text: "直到永远。" },
-                { text: "Amen." },
-                { text: "愿永远的光照耀他们，" },
-                { text: "永远！永远！" }
-              ]
+              thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter8.jpg"
             }
           ]
         }
@@ -1081,15 +865,19 @@ function loadMovement(composer, work, movement, autoplay = false) {
     overlay.classList.add('hidden');
   }
 
-  // Render lyrics
+  // Render lyrics (none until they are loaded)
   renderLyrics(movement);
   updateNavButtons();
   updateTimingPanel();
 
-  // A timing file may arrive after rendering — resync once it does
-  loadTiming(movement).then(() => {
-    if (currentMovement() === movement) refreshAfterTimingChange();
-  });
+  // Lyrics come from the timing file next to the audio, loaded on first use
+  if (!movement.lyrics) {
+    loadTiming(movement).then(() => {
+      if (currentMovement() !== movement) return;
+      renderLyrics(movement);
+      updateTimingPanel();
+    });
+  }
 
   if (autoplay) {
     audio.play().catch(() => {});
@@ -1107,7 +895,9 @@ function renderLyrics(movement) {
   topSpacer.className = 'lyrics-spacer';
   inner.appendChild(topSpacer);
 
-  if (!movement.lyrics || movement.lyrics.length === 0) {
+  if (!movement.lyrics) {
+    // Still loading (see loadMovement)
+  } else if (movement.lyrics.length === 0) {
     const msg = document.createElement('p');
     msg.className = 'no-song-msg';
     msg.textContent = 'No lyrics available for this movement.';
@@ -1278,7 +1068,10 @@ function getCurrentLyricIdx() {
 }
 
 /* ================================================================
-   LYRICS TIMING — record, save, load
+   LYRICS TIMING — the lyrics and their timing: load, record, save
+   Each movement's lyrics live in <audio>.timing.js next to its MP3 (the
+   only copy: edit the text there). Every line has a start time, or null
+   until it is timed.
    Rec:   arms recording (switches to manual mode). While the audio
           plays, each line the operator advances to (key or click) gets
           the current audio time as its start time. Moving back is a
@@ -1289,10 +1082,11 @@ function getCurrentLyricIdx() {
    Clear: discards the timing recorded in this browser
    Export: writes every timing kept in this browser to <audio>.timing.js
           in its MP3's folder (Chromium: folder access; others: downloads)
-   Recordings persist in localStorage. When a movement has none, the
-   <audio>.timing.js file next to its MP3 is used. That file is the
-   timing JSON wrapped in one onePageMp3Timing(...) call, so a <script>
-   can load it when the page is opened as file:// (fetch can't).
+   Recordings persist in localStorage and override the file's times
+   (never its text) until Clear.
+   The file is the timing JSON wrapped in one onePageMp3Timing(...)
+   call, so a <script> can load it when the page is opened as file://
+   (fetch can't).
    Auto mode uses these times instead of linear interpolation.
 ================================================================ */
 const TIMING_FORMAT      = 'onepagemp3-lyrics-timing';
@@ -1301,7 +1095,9 @@ const TIMING_CALLBACK    = 'onePageMp3Timing';  // what a .timing.js file calls
 
 const timing = {
   recording: false,
-  byKey:     {}  // movementKey -> { times: [seconds | null per lyric line], source: 'local' | 'file' }
+  byKey:     {},  // movementKey -> { times: [seconds | null per lyric line], source: 'local' | 'file' }
+  files:     {},  // movementKey -> timing document read from its .timing.js file
+  loads:     {}   // movementKey -> Promise of loadTiming, so each file is read once
 };
 
 function movementEntry(movement) {
@@ -1322,13 +1118,9 @@ function timingFileName(movement) {
   return timingFileUrl(movement).split('/').pop();
 }
 
-// Start time (seconds or null) of each lyric line, or null if the movement has no timing.
-// Recorded / loaded timing wins over 'time' fields in APP_DATA.
+// Start time (seconds or null) of each lyric line, or null if the movement has no timing
 function lyricTimes(movement) {
-  const rec = timing.byKey[movementKey(movement)];
-  if (rec) return rec.times;
-  if (movement.lyrics?.some(l => l.time !== undefined)) return movement.lyrics.map(l => l.time ?? null);
-  return null;
+  return timing.byKey[movementKey(movement)]?.times ?? null;
 }
 
 function recordLineTime(idx, prevIdx) {
@@ -1373,27 +1165,37 @@ function parseTimingFile(text) {
   return JSON.parse(json);
 }
 
-// Validate a timing document and attach it to the movement it names; returns that movement
-function applyTimingDoc(doc, source) {
+// The movement a timing document names; throws if it is not a valid timing document
+function timingDocMovement(doc) {
   if (doc?.format !== TIMING_FORMAT || !Array.isArray(doc.lines)) {
     throw new Error('not a lyrics timing file');
   }
   const e = state.allMovements.find(m =>
     m.composer.id === doc.composer && m.work.id === doc.work && m.data.id === doc.movement);
   if (!e) throw new Error(`unknown movement ${doc.composer}/${doc.work}/${doc.movement}`);
+  return e.data;
+}
 
-  const lyrics = e.data.lyrics ?? [];
-  if (doc.lines.length !== lyrics.length) {
-    console.warn(`Timing for ${doc.movement} has ${doc.lines.length} lines, lyrics have ${lyrics.length}`);
+// Attach a timing document to the movement it names; returns that movement.
+// The timing file (source 'file') supplies the lyrics; a recording (source 'local') only
+// times them, unless the movement has no timing file.
+function applyTimingDoc(doc, source) {
+  const movement = timingDocMovement(doc);
+  if (source === 'file' || !movement.lyrics?.length) {
+    movement.lyrics = doc.lines.map(l => ({ text: String(l?.text ?? '') }));
+  } else if (doc.lines.length !== movement.lyrics.length) {
+    console.warn(`Timing for ${doc.movement} has ${doc.lines.length} lines, lyrics have ${movement.lyrics.length}`);
   }
-  const times = lyrics.map((_, i) => {
+  const times = movement.lyrics.map((_, i) => {
     const t = doc.lines[i]?.time;
     return typeof t === 'number' && isFinite(t) && t >= 0 ? t : null;
   });
-  if (times.every(t => t === null)) throw new Error('no timed lines');
-
-  timing.byKey[movementKey(e.data)] = { times, source };
-  return e.data;
+  if (times.some(t => t !== null)) {
+    timing.byKey[movementKey(movement)] = { times, source };
+  } else if (source !== 'file') {
+    throw new Error('no timed lines');  // a timing file may hold lyrics not timed yet
+  }
+  return movement;
 }
 
 function storeTiming(movement) {
@@ -1404,38 +1206,47 @@ function storeTiming(movement) {
   }
 }
 
-// Make a movement's timing available: this browser's recording, else the file next to the audio
-async function loadTiming(movement) {
+// Load a movement's lyrics and timing, once: the timing file next to its audio, then this
+// browser's recording on top. Afterwards movement.lyrics is set ([] if there is no file).
+function loadTiming(movement) {
   const key = movementKey(movement);
-  if (timing.byKey[key]) return;
-  try {
-    const stored = localStorage.getItem(TIMING_STORAGE_KEY + key);
-    if (stored) { applyTimingDoc(JSON.parse(stored), 'local'); return; }
-  } catch (err) {
-    console.warn('Ignoring stored lyrics timing:', err);
-  }
-  await loadTimingFile(movement);
+  return timing.loads[key] ??= (async () => {
+    const doc = await loadTimingFile(movement);
+    try {
+      if (doc) applyTimingDoc(doc, 'file');
+    } catch (err) {
+      delete timing.files[key];
+      console.warn(`Ignoring ${timingFileName(movement)}:`, err.message);
+    }
+    try {
+      const stored = localStorage.getItem(TIMING_STORAGE_KEY + key);
+      if (stored) applyTimingDoc(JSON.parse(stored), 'local');
+    } catch (err) {
+      console.warn('Ignoring stored lyrics timing:', err);
+    }
+    movement.lyrics ??= [];
+  })();
 }
 
-// Run the .timing.js file next to the audio; it hands its timing to TIMING_CALLBACK.
-// A missing file just fires 'error'.
+// Run the .timing.js file next to the audio, which hands its document to TIMING_CALLBACK.
+// Resolves to that document, or null if there is no file.
 function loadTimingFile(movement) {
+  const key = movementKey(movement);
   return new Promise(resolve => {
     const script = document.createElement('script');
     script.src = timingFileUrl(movement) + (location.protocol === 'file:' ? '' : `?t=${Date.now()}`);
-    script.onload = script.onerror = () => { script.remove(); resolve(); };
+    script.onerror = () => { script.remove(); resolve(null); };
+    script.onload  = () => {
+      script.remove();
+      if (!timing.files[key]) console.warn(`${timingFileName(movement)} is not the timing of ${key}`);
+      resolve(timing.files[key] ?? null);
+    };
     document.head.append(script);
   });
 }
 
 window[TIMING_CALLBACK] = doc => {
-  // A recording made in this browser while the file was loading wins
-  if (timing.byKey[`${doc?.composer}/${doc?.work}/${doc?.movement}`]) return;
-  try {
-    applyTimingDoc(doc, 'file');
-  } catch (err) {
-    console.warn('Ignoring lyrics timing file:', err.message);
-  }
+  timing.files[`${doc?.composer}/${doc?.work}/${doc?.movement}`] = doc;
 };
 
 async function saveTimingFile() {
@@ -1567,13 +1378,14 @@ function updateTimingPanel() {
 
   const lines = [];
   if (!hasLyrics) {
-    lines.push(movement ? 'This movement has no lyrics.' : 'Select a movement to record its timing.');
+    lines.push(!movement         ? 'Select a movement to record its timing.'
+             : !movement.lyrics ? 'Loading lyrics…'
+             :                    `This movement has no lyrics (no ${timingFileName(movement)}).`);
   } else {
     const timed  = times ? times.filter(t => t !== null).length : 0;
-    const origin = !times              ? ''
-                 : rec?.source === 'file' ? ` · ${timingFileName(movement)}`
-                 : rec                 ? ' · this browser'
-                 :                       ' · built-in';
+    const origin = !times                ? ''
+                 : rec.source === 'file' ? ` · ${timingFileName(movement)}`
+                 :                         ' · this browser';
     lines.push(`${movement.number}. ${movement.title}`);
     lines.push(`${timed} / ${movement.lyrics.length} lines timed${origin}`);
   }
@@ -1625,7 +1437,9 @@ document.getElementById('timing-file-input').addEventListener('change', async e 
   const errors = [];
   for (const file of e.target.files) {
     try {
-      storeTiming(applyTimingDoc(parseTimingFile(await file.text()), 'local'));
+      const doc = parseTimingFile(await file.text());
+      await loadTiming(timingDocMovement(doc));  // its lyrics come from its own timing file
+      storeTiming(applyTimingDoc(doc, 'local'));
     } catch (err) {
       errors.push(`${file.name}: ${err.message}`);
     }
@@ -1642,11 +1456,9 @@ document.getElementById('btn-timing-clear').addEventListener('click', e => {
   const key = movementKey(movement);
   delete timing.byKey[key];
   try { localStorage.removeItem(TIMING_STORAGE_KEY + key); } catch { /* storage unavailable */ }
+  // Back to the timing in the file next to the audio, if it has any
+  if (timing.files[key]) applyTimingDoc(timing.files[key], 'file');
   refreshAfterTimingChange();
-  // Fall back to the timing file next to the audio, if there is one
-  loadTiming(movement).then(() => {
-    if (currentMovement() === movement) refreshAfterTimingChange();
-  });
 });
 
 /* ================================================================

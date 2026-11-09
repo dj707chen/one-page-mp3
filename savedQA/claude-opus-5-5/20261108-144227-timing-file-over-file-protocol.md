@@ -29,3 +29,38 @@ in a single `onePageMp3Timing( ... );` call, so the app can load it with a `<scr
 
 **Note:** timing only drives the highlight in **Auto** mode. The page starts in Manual mode unless opened with
 `?highlight-mode=auto`, so switch to Auto to see it.
+
+---
+
+## Ask
+
+> The lyrics is not in two places: for example Chapter1.timing.js and index.html lines 635 - 916, can you use
+> timing.js files only?
+
+## Answer
+
+Done: the lyrics are now only in the `.timing.js` files. `index.html` has none.
+
+- **`index.html`:** removed the `lyrics: [...]` arrays from all 8 movements in `APP_DATA` (−288 lines). When a
+  movement is first opened, the app loads `<audio>.timing.js` and takes **both the text and the times** from it.
+- **New files** `Chapter2.timing.js` … `Chapter8.timing.js`: generated from the lyrics that were in `index.html`,
+  with `"time":null` on every line (not timed yet). `Chapter1.timing.js` was kept as you left it. Its text wins
+  over the old `index.html` copy, which only differed by a trailing space on line 1.
+- **Recording in the browser:** a recording in localStorage now overrides only the file's *times*, never its text.
+  So hand-editing the text in a `.timing.js` file always shows up. Clear goes back to the file's times.
+- **Save / Export** write the file's text with the current times.
+- **Load** of a timing file also keeps the text from the movement's own `.timing.js`.
+- A movement with no `.timing.js` shows "No lyrics available".
+- `README.md` "Flow of modifying lyrics" now says to edit the text in the `.timing.js` file.
+
+Verified in headless Chrome over `file://` and http:
+- Chapters 1, 2, 5 and 8 load their lyrics from their files.
+- Chapter 1 auto-mode highlighting follows the recorded times.
+- A Chapter 2 recording survives a reload, and Clear removes it.
+- Recording on Chapter 1 then Clear returns to the file's times.
+- Load for an unopened chapter keeps the file's text.
+- A missing file shows "No lyrics available".
+- Save round-trips all 55 Chapter 1 lines.
+
+Note: the blank lines that grouped Chapter 1's stanzas in `index.html` were never displayed, so the `.timing.js`
+files don't have them.

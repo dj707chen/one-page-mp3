@@ -9,7 +9,9 @@
    artist.works = [work, ...] once loaded.
    A movement's lyrics are not here: they are read from the .timing.js
    file next to its audio (see LYRICS TIMING), and become
-   movement.lyrics = [{ text }] once loaded.
+   movement.lyrics = [{ text, translation }] once loaded.
+   If any line has a translation, the lyrics panel shows two columns:
+   each line's original text beside its translation, highlighted together.
    Auto mode highlights by the timing in that file (or recorded in this
    browser), else by linear interpolation (approximate sync).
 ================================================================ */
@@ -258,6 +260,8 @@ function loadMovement(composer, work, movement, autoplay = false) {
 function renderLyrics(movement) {
   const inner = document.getElementById('lyrics-inner');
   inner.innerHTML = '';
+  const bilingual = !!movement.lyrics?.some(l => l.translation);
+  inner.classList.toggle('bilingual', bilingual);
 
   const topSpacer = document.createElement('div');
   topSpacer.className = 'lyrics-spacer';
@@ -281,12 +285,22 @@ function renderLyrics(movement) {
     meta.style.whiteSpace = 'pre-line';
     inner.appendChild(meta);
 
-    // Lyric lines
+    // Lyric lines (bilingual: one row of two cells, so both are highlighted together)
     movement.lyrics.forEach((lyric, idx) => {
       const el = document.createElement('div');
       el.className = 'lyric-line';
       el.dataset.index = idx;
-      el.textContent = lyric.text;
+      if (bilingual) {
+        const original    = document.createElement('span');
+        const translation = document.createElement('span');
+        original.className    = 'lyric-original';
+        translation.className = 'lyric-translation';
+        original.textContent    = lyric.text;
+        translation.textContent = lyric.translation;
+        el.append(original, translation);
+      } else {
+        el.textContent = lyric.text;
+      }
       // Manual mode: clicking jumps the highlight to this line.
       // Auto mode: if line has a timestamp, clicking seeks there.
       el.addEventListener('click', () => {
@@ -442,7 +456,7 @@ function getCurrentLyricIdx() {
    LYRICS TIMING — the lyrics and their timing: load, record, save
    Each movement's lyrics live in <audio>.timing.js next to its MP3 (the
    only copy: edit the text there). Every line has a start time, or null
-   until it is timed.
+   until it is timed, and optionally a translation.
    Rec:   arms recording (switches to manual mode). While the audio
           plays, each line the operator advances to (key or click) gets
           the current audio time as its start time. Moving back is a
@@ -454,7 +468,7 @@ function getCurrentLyricIdx() {
    Export: writes every timing kept in this browser to <audio>.timing.js
           in its MP3's folder (Chromium: folder access; others: downloads)
    Recordings persist in localStorage and override the file's times
-   (never its text) until Clear.
+   (never its text or translations) until Clear.
    The file is the timing JSON wrapped in one onePageMp3Timing(...)
    call, so a <script> can load it when the page is opened as file://
    (fetch can't).
@@ -518,7 +532,9 @@ function timingDoc(movement) {
     movement: movement.id,
     audio:    movement.audio,
     saved:    new Date().toISOString(),
-    lines:    movement.lyrics.map((l, i) => ({ time: times[i] ?? null, text: l.text }))
+    // A line without a translation has no "translation" key (JSON drops undefined)
+    lines:    movement.lyrics.map((l, i) => ({ time: times[i] ?? null, text: l.text,
+                                               translation: l.translation || undefined }))
   };
 }
 
@@ -553,7 +569,8 @@ function timingDocMovement(doc) {
 function applyTimingDoc(doc, source) {
   const movement = timingDocMovement(doc);
   if (source === 'file' || !movement.lyrics?.length) {
-    movement.lyrics = doc.lines.map(l => ({ text: String(l?.text ?? '') }));
+    movement.lyrics = doc.lines.map(l => ({ text: String(l?.text ?? ''),
+                                            translation: String(l?.translation ?? '') }));
   } else if (doc.lines.length !== movement.lyrics.length) {
     console.warn(`Timing for ${doc.movement} has ${doc.lines.length} lines, lyrics have ${movement.lyrics.length}`);
   }
@@ -887,8 +904,9 @@ audio.addEventListener('ended', () => {
 });
 
 audio.addEventListener('error', () => {
-  // Gracefully handle missing audio file — lyrics still display
-  console.warn('Audio file not found:', audio.src);
+  // Gracefully handle a missing or unplayable audio file — lyrics still display.
+  // "Format error" on an MP3 that plays elsewhere usually means the HTTP server (see README)
+  console.warn('Cannot play audio:', audio.src, audio.error?.message || `error code ${audio.error?.code}`);
 });
 
 /* ================================================================

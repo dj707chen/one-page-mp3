@@ -58,6 +58,10 @@ Any static file server works, as long as it supports HTTP **Range requests**. Wi
 in the audio: rewind, fast-forward, the progress bar and clicking a lyric line all jump back to 0:00.
 
 > **Do not use `python3 -m http.server`.** It does not support Range requests, so seeking does not work.
+>
+> **Do not use `ruby -run -e httpd`.** In Chrome the music starts and then stops at once, or does not start at all,
+> after the first time an MP3 is loaded. Chrome keeps the part of the MP3 it has downloaded, and when it asks for the
+> next part, this server answers `304 Not Modified` instead of sending the audio.
 
 Run one of these commands in the project folder (the folder that contains `index.html`), then open the URL shown:
 
@@ -66,14 +70,12 @@ Run one of these commands in the project folder (the folder that contains `index
 | Node.js (recommended) | `npx http-server -c-1` | http://localhost:8080/ |
 | Node.js | `npx serve` | http://localhost:3000/ |
 | Python 3 | `python3 -m pip install rangehttpserver` (once), then `python3 -m RangeHTTPServer` | http://localhost:8000/ |
-| Ruby | `ruby -run -e httpd . -p 8000` | http://localhost:8000/ |
 
 - **`npx`** comes with Node.js. The first run downloads the server package, so it needs an internet connection once.
 - **`-c-1`** turns off `http-server`'s caching, so edited MP3s and pictures are also picked up on reload. Add
   `-p 9000` to use another port, or `-a 127.0.0.1` to accept connections from this computer only.
 - **Other devices.** `http-server` lists the addresses it listens on, including the network one (e.g.
   `http://192.168.1.20:8080`). Open that address on the other device. Your firewall may ask whether to allow it.
-- **Ruby.** The `ruby` built into macOS works as is. With Ruby 3.0 or later, run `gem install webrick` first.
 - Press **Ctrl+C** in the terminal to stop the server.
 
 To check that a server supports Range requests, ask it for part of an MP3. It should answer `206`, not `200`:
@@ -82,6 +84,9 @@ To check that a server supports Range requests, ask it for part of an MP3. It sh
 curl -s -o /dev/null -w '%{http_code}\n' -H 'Range: bytes=0-99' \
   http://localhost:8080/assets/AnlunHuang/ChineseRequiem/Chapter1.mp3
 ```
+
+Passing this check is not enough on its own: the Ruby server above passes it and still fails in Chrome. Play an MP3,
+reload the page, and play it again to be sure.
 
 Browser recordings of lyrics timing are stored per origin, and the port is part of the origin. A recording made at
 `http://localhost:8080` is not visible at `http://localhost:3000` or from `file://`. Use the same server and port each
@@ -92,13 +97,13 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
 ```
 ┌───────────────┬─────────────────────────────────────────────────────────────┐
 │ ♫ / Lyrics    │ ◀ Prev  Lyrics:[Auto|Manual]  Work · Movement  ⤢ Max Next ▶ │  top controls
-│               ├─────────────────────────────────────────────────────────────┤
-│ ▾ Artist      │                                                             │
-│   ▾ Work      │        lines above (dimmed)                                 │
-│     1. Mvt    │   ▌    CURRENT LINE (highlighted)                           │  lyrics
-│     2. Mvt    │        lines below (dimmed)                                 │
-│ ▸ Artist      │                                                             │
-│ ▸ Artist      ├─────────────────────────────────────────────────────────────┤
+│               ├──────────────────────────────┬──────────────────────────────┤
+│ ▾ Artist      │                              │                              │
+│   ▾ Work      │   lines above (dimmed)       │   their translations         │
+│     1. Mvt    │ ▌ CURRENT LINE (highlighted) │   ITS TRANSLATION            │  lyrics
+│     2. Mvt    │   lines below (dimmed)       │   their translations         │
+│ ▸ Artist      │                              │                              │
+│ ▸ Artist      ├──────────────────────────────┴──────────────────────────────┤
 │               │ ◀◀  −15s  ▶  +15s  ▶▶   ━━━━━━━●━━━━━━━━━━   1:23 / 5:40    │  bottom controls
 │ LYRICS TIMING ├─────────────────────────────────────────────────────────────┤
 │   (collapsed) │ Artist · Work Op. (year) · Premiere: … │ Description        │  info pane
@@ -121,6 +126,10 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
   - **Lyric lines.** The current line has a gold left border, a tinted background and a larger font. Up to 4 lines
     above and 4 below it use the "above" and "below" colors. Lines further away are faded. The current line is kept
     centered vertically.
+  - **Translation.** If any line of the movement has a `"translation"` (see
+    [Flow: modifying lyrics](#flow-modifying-lyrics)), the panel is divided into two columns: the original lyrics on
+    the left and the translation on the right. Each line and its translation share one row, so they are highlighted
+    together and stay level even when one of them wraps. Movements without translations keep one full-width column.
   - **Picture.** The movement's picture (`thumbnail`) covers the lyrics until playback starts, with "▶ Click to play".
     It is hidden while the music plays so it never makes the lyrics hard to read.
 - **Bottom control section.** These are the playback buttons: ◀◀ rewind to the beginning, −15s, ▶ / ❚❚
@@ -288,6 +297,14 @@ source material only, and the app does not read them.
    - Each time belongs to the row it is on. When you add or remove a line, add or remove its time with it. A new line
      can start as `"time":null`.
    - Keep the file valid JavaScript: rows are separated by commas, with no comma after the last row.
+   - To show a translation beside a line, add `"translation"` to its row. Rows without one leave the right column
+     empty:
+
+     ```javascript
+         {"time":2.2,"text":"求主","translation":"O Lord,"},
+     ```
+
+     **Save** and **Export** keep the translations.
 2. If this browser has a recording for the movement (the panel says `· this browser`), click **Clear**. A recording
    matches times to lines by **position**, so after lines are added or removed its times would land on the wrong
    lines.
@@ -399,13 +416,13 @@ on), and the rest of the app keeps working.
 |---|---|---|---|
 | `assets/<Artist>/artist.js` | `onePageMp3Artist({...})` | Artist: id, name, nameSort, bio, workFiles | At startup, from `APP_DATA.artistFiles` |
 | `assets/<Artist>/<Work>/work.js` | `onePageMp3Work({...})` | Work: id, title, titleSort, year, opusNumber, premiered, description, movements | At startup, from the artist's `workFiles` |
-| `<mp3 name>.timing.js` | `onePageMp3Timing({...})` | The movement's lyrics, one `{time, text}` per line | When the movement is first selected |
+| `<mp3 name>.timing.js` | `onePageMp3Timing({...})` | The movement's lyrics, one `{time, text, translation}` per line (`translation` optional) | When the movement is first selected |
 
 Each file contains one call to a function that `app.js` defines, so it can be loaded with a `<script>` tag. This works
 from `file://`, where `fetch` does not.
 
 Precedence for times is: the browser recording (`localStorage` key `onepagemp3.timing:<artist id>/<work id>/<movement id>`),
-then the `.timing.js` file, then even spacing. The lyrics **text** always comes from the `.timing.js` file.
+then the `.timing.js` file, then even spacing. The lyrics **text** and **translations** always come from the `.timing.js` file.
 
 ## Project structure
 

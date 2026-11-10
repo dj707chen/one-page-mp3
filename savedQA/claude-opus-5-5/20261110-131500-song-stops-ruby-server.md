@@ -48,3 +48,13 @@ Headless Chrome with its cache on, opening Chapter 1 from the tree and clicking 
 
 The new console message was checked with a missing MP3: `Cannot play audio: …/missing.mp3 MEDIA_ELEMENT_ERROR: Format
 error`.
+
+## Follow-up ask
+
+When server is run by the two npx command, song is playing well, on when the server is started by ruby command doesn't
+work
+
+## Answer
+
+That matches the tests: both `npx http-server -c-1` and `npx serve` play, and `ruby -run -e httpd` fails in Chrome. The
+README now lists only the servers that work. Use `npx http-server -c-1` (http://localhost:8080/).

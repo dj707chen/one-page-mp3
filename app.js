@@ -11,7 +11,8 @@
    file next to its audio (see LYRICS TIMING), and become
    movement.lyrics = [{ text, translation }] once loaded.
    If any line has a translation, the lyrics panel shows two columns:
-   each line's original text beside its translation, highlighted together.
+   each line's original text beside its translation, highlighted together
+   (see BILINGUAL LYRICS DIVIDER).
    Auto mode highlights by the timing in that file (or recorded in this
    browser), else by linear interpolation (approximate sync).
 ================================================================ */
@@ -262,6 +263,7 @@ function renderLyrics(movement) {
   inner.innerHTML = '';
   const bilingual = !!movement.lyrics?.some(l => l.translation);
   inner.classList.toggle('bilingual', bilingual);
+  if (bilingual) inner.appendChild(lyricsDivider);
 
   const topSpacer = document.createElement('div');
   topSpacer.className = 'lyrics-spacer';
@@ -422,6 +424,75 @@ document.getElementById('btn-maximize').addEventListener('click', e => {
   e.currentTarget.blur();
   setLyricsMaximized(true);
 });
+
+/* ================================================================
+   BILINGUAL LYRICS DIVIDER
+   Drag the line between the original and translation columns to set
+   the original's share of the width (DIVIDER_MIN–DIVIDER_MAX percent);
+   double-click it to go back to the default (--lyrics-original-width in
+   common.css). The width is remembered in this browser.
+================================================================ */
+const DIVIDER_STORAGE_KEY = 'onepagemp3.lyricsOriginalWidth';
+const DIVIDER_MIN = 20;
+const DIVIDER_MAX = 80;
+
+// pct: the original column's percent of the lyrics width, or null for the CSS default
+function setOriginalWidth(pct) {
+  const root = document.documentElement.style;
+  if (pct === null) root.removeProperty('--lyrics-original-width');
+  else root.setProperty('--lyrics-original-width', `${pct}%`);
+}
+
+function storeOriginalWidth(pct) {
+  try {
+    if (pct === null) localStorage.removeItem(DIVIDER_STORAGE_KEY);
+    else localStorage.setItem(DIVIDER_STORAGE_KEY, String(pct));
+  } catch { /* storage unavailable: the width lasts until reload */ }
+}
+
+(function restoreOriginalWidth() {
+  try {
+    const pct = parseFloat(localStorage.getItem(DIVIDER_STORAGE_KEY));
+    if (pct >= DIVIDER_MIN && pct <= DIVIDER_MAX) setOriginalWidth(pct);
+  } catch { /* storage unavailable */ }
+})();
+
+// One divider, put back into #lyrics-inner by renderLyrics for bilingual lyrics
+const lyricsDivider = (() => {
+  const divider = document.createElement('div');
+  divider.className = 'lyrics-divider';
+  divider.setAttribute('role', 'separator');
+  divider.setAttribute('aria-orientation', 'vertical');
+  divider.title = 'Drag to resize the columns; double-click to reset';
+  let draggedPct = null;
+
+  divider.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    e.preventDefault();  // no text selection while dragging
+    divider.setPointerCapture(e.pointerId);
+    divider.classList.add('dragging');
+  });
+  divider.addEventListener('pointermove', e => {
+    if (!divider.hasPointerCapture(e.pointerId)) return;
+    const rect = divider.parentElement.getBoundingClientRect();
+    const pct  = (e.clientX - rect.left) / rect.width * 100;
+    draggedPct = Math.round(Math.min(DIVIDER_MAX, Math.max(DIVIDER_MIN, pct)) * 10) / 10;
+    setOriginalWidth(draggedPct);
+  });
+  // Drag ended (pointer released or cancelled)
+  divider.addEventListener('lostpointercapture', () => {
+    divider.classList.remove('dragging');
+    if (draggedPct !== null) storeOriginalWidth(draggedPct);
+    draggedPct = null;
+    centerCurrentLine();  // lines re-wrapped, so the current one may have moved
+  });
+  divider.addEventListener('dblclick', () => {
+    setOriginalWidth(null);
+    storeOriginalWidth(null);
+    centerCurrentLine();
+  });
+  return divider;
+})();
 
 /* ================================================================
    COMPUTE CURRENT LYRIC INDEX from audio time

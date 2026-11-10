@@ -97,13 +97,13 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
 ```
 ┌───────────────┬─────────────────────────────────────────────────────────────┐
 │ ♫ / Lyrics    │ ◀ Prev  Lyrics:[Auto|Manual]  Work · Movement  ⤢ Max Next ▶ │  top controls
-│               ├──────────────────────────────┬──────────────────────────────┤
-│ ▾ Artist      │                              │                              │
-│   ▾ Work      │   lines above (dimmed)       │   their translations         │
-│     1. Mvt    │ ▌ CURRENT LINE (highlighted) │   ITS TRANSLATION            │  lyrics
-│     2. Mvt    │   lines below (dimmed)       │   their translations         │
-│ ▸ Artist      │                              │                              │
-│ ▸ Artist      ├──────────────────────────────┴──────────────────────────────┤
+│               ├────────────────────────┬────────────────────────────────────┤
+│ ▾ Artist      │                        │                                    │
+│   ▾ Work      │   lines above (dimmed) │   their translations               │
+│     1. Mvt    │ ▌ CURRENT LINE         │   ITS TRANSLATION (highlighted)    │  lyrics
+│     2. Mvt    │   lines below (dimmed) │   their translations               │
+│ ▸ Artist      │                        │                                    │
+│ ▸ Artist      ├────────────────────────┴────────────────────────────────────┤
 │               │ ◀◀  −15s  ▶  +15s  ▶▶   ━━━━━━━●━━━━━━━━━━   1:23 / 5:40    │  bottom controls
 │ LYRICS TIMING ├─────────────────────────────────────────────────────────────┤
 │   (collapsed) │ Artist · Work Op. (year) · Premiere: … │ Description        │  info pane
@@ -128,8 +128,11 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
     centered vertically.
   - **Translation.** If any line of the movement has a `"translation"` (see
     [Flow: modifying lyrics](#flow-modifying-lyrics)), the panel is divided into two columns: the original lyrics on
-    the left and the translation on the right. Each line and its translation share one row, so they are highlighted
+    the left (40% of the width) and the translation on the right (the other 60%, since English usually needs more
+    room). Each line and its translation share one row, so they are highlighted
     together and stay level even when one of them wraps. Movements without translations keep one full-width column.
+  - **Divider.** Drag the line between the two columns to change their widths (from 20% to 80% for the original).
+    It turns gold under the mouse. Double-click it to go back to 40%. The width is remembered in this browser.
   - **Picture.** The movement's picture (`thumbnail`) covers the lyrics until playback starts, with "▶ Click to play".
     It is hidden while the music plays so it never makes the lyrics hard to read.
 - **Bottom control section.** These are the playback buttons: ◀◀ rewind to the beginning, −15s, ▶ / ❚❚
@@ -213,10 +216,13 @@ For example:
 index.html?above-color=%238888aa&below-color=%23aaaaaa&below-bg=rgba(0,0,0,0.2)&highlight-mode=manual
 ```
 
-Two settings have no URL parameter yet, so you change them in the source:
+Three settings have no URL parameter yet, so you change them in the source:
 
 - **Current line colors.** `--lyrics-current-color`, `--lyrics-current-bg` and `--lyrics-current-border` at the top
   of [common.css](common.css).
+- **Default width of the original-lyrics column** when a movement has translations. `--lyrics-original-width` at the
+  top of [common.css](common.css), `40%`. The translation column gets the rest. To change it for one browser only,
+  [drag the divider](#screen-layout) instead.
 - **Number of lines above and below.** This is the `4` in `highlightLyricLine()` in [app.js](app.js). Lines further
   away are faded.
 

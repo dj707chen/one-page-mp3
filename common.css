@@ -11,6 +11,7 @@
   --lyrics-current-color: #ffffff;
   --lyrics-current-bg: rgba(201, 162, 39, 0.12);
   --lyrics-current-border: #c9a227;
+  --lyrics-original-width: 40%;  /* bilingual lyrics: original column (default; drag the divider to change) */
 
   --bg-primary:   #0d1117;
   --bg-secondary: #161b22;
@@ -322,25 +323,47 @@ body {
   opacity: 0.28;
 }
 
-/* Bilingual lyrics: the panel is divided into two columns, original | translation.
-   Each line is one row holding both, so they share one highlight and stay level. */
+/* Bilingual lyrics: the panel is divided into two columns, original | translation,
+   split at --lyrics-original-width (the divider can be dragged, see app.js). Each line
+   is one row holding both, so they share one highlight and stay level. The cells, not
+   the row, carry the side padding, so the column boundary lands on the divider. */
 #lyrics-inner.bilingual { position: relative; }
 
-#lyrics-inner.bilingual::before {
+/* The divider: a wide, invisible grab area around a 1px line */
+.lyrics-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--lyrics-original-width);
+  width: 13px;
+  margin-left: -6px;
+  cursor: col-resize;
+  touch-action: none;
+  z-index: 1;
+}
+
+.lyrics-divider::before {
   content: '';
   position: absolute;
   top: 0;
   bottom: 0;
-  left: 50%;
+  left: 6px;
   border-left: 1px solid var(--border);
-  pointer-events: none;
+  transition: border-color 0.15s;
 }
+
+.lyrics-divider:hover::before,
+.lyrics-divider.dragging::before { border-left-color: var(--accent); }
 
 #lyrics-inner.bilingual .lyric-line {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 48px;
+  grid-template-columns: var(--lyrics-original-width) 1fr;
+  padding-left: 0;
+  padding-right: 0;
 }
+
+#lyrics-inner.bilingual .lyric-original    { padding: 0 24px 0 14px; }
+#lyrics-inner.bilingual .lyric-translation { padding: 0 14px 0 24px; }
 
 .no-song-msg {
   color: var(--text-muted);

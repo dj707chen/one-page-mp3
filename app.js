@@ -214,7 +214,7 @@ function loadMovement(composer, work, movement, autoplay = false) {
   document.getElementById('info-work').textContent =
     `${work.title}${work.opusNumber ? ' ' + work.opusNumber : ''}${work.year ? ' (' + work.year + ')' : ''}`;
   document.getElementById('info-dates').textContent =
-    work.premiered ? `首演: ${work.premiered}` : '';
+    work.premiered ? `Premiere: ${work.premiered}` : '';
   document.getElementById('info-description').textContent = work.description || '';
 
   // Load audio

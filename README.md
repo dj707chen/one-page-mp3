@@ -10,20 +10,34 @@ lyrics and highlights the line being sung.
 
 ## Contents
 
-- [Running the app](#running-the-app)
-- [Screen layout](#screen-layout)
-- [Playing music](#playing-music)
-- [Lyrics highlight modes](#lyrics-highlight-modes)
-- [Maximized lyrics](#maximized-lyrics)
-- [Keyboard shortcuts](#keyboard-shortcuts)
-- [Configuration (URL parameters)](#configuration-url-parameters)
-- [Flow: timing the lyrics](#flow-timing-the-lyrics)
-- [Flow: modifying lyrics](#flow-modifying-lyrics)
-- [Flow: adding an artist, work or movement](#flow-adding-an-artist-work-or-movement)
-- [Data files reference](#data-files-reference)
-- [Project structure](#project-structure)
-- [Browser notes](#browser-notes)
-- [Development workflow](#development-workflow)
+- [MP3 Song Player with Lyrics Highlighting](#mp3-song-player-with-lyrics-highlighting)
+  - [Contents](#contents)
+  - [Running the app](#running-the-app)
+    - [Running an HTTP server](#running-an-http-server)
+  - [Screen layout](#screen-layout)
+  - [Playing music](#playing-music)
+  - [Lyrics highlight modes](#lyrics-highlight-modes)
+  - [Maximized lyrics](#maximized-lyrics)
+  - [Keyboard shortcuts](#keyboard-shortcuts)
+  - [Configuration (URL parameters)](#configuration-url-parameters)
+  - [Flow: timing the lyrics](#flow-timing-the-lyrics)
+    - [1. Record](#1-record)
+    - [2. Check](#2-check)
+    - [3. Save to the project](#3-save-to-the-project)
+    - [4. Tidy up and commit](#4-tidy-up-and-commit)
+    - [Other timing buttons](#other-timing-buttons)
+  - [Flow: modifying lyrics](#flow-modifying-lyrics)
+  - [Flow: adding an artist, work or movement](#flow-adding-an-artist-work-or-movement)
+    - [1. Put the media in place](#1-put-the-media-in-place)
+    - [2. Describe the artist — `assets/<Artist>/artist.js`](#2-describe-the-artist--assetsartistartistjs)
+    - [3. Describe the work — `assets/<Artist>/<Work>/work.js`](#3-describe-the-work--assetsartistworkworkjs)
+    - [4. Register a new artist in `app.js`](#4-register-a-new-artist-in-appjs)
+    - [5. Add the lyrics — `<mp3 name>.timing.js`](#5-add-the-lyrics--mp3-nametimingjs)
+    - [6. Check](#6-check)
+  - [Data files reference](#data-files-reference)
+  - [Project structure](#project-structure)
+  - [Browser notes](#browser-notes)
+  - [Development workflow](#development-workflow)
 
 ## Running the app
 
@@ -31,10 +45,47 @@ lyrics and highlights the line being sung.
 data file (artists, works, lyrics) is a `.js` file loaded with a `<script>` tag because browsers block `fetch` of
 local files.
 
-**Over HTTP (optional).** Any static file server works, as long as it supports HTTP **Range requests**. Without
-them the browser cannot seek in the audio: rewind, fast-forward, the progress bar and clicking a lyric line all jump
-back to 0:00. Note that `python3 -m http.server` does **not** support Range requests. When the app is served over HTTP,
-it adds a cache-busting query to every data file, so a plain reload picks up your edits.
+**Over HTTP (optional).** You can also serve the project folder with a local web server. This is useful when you:
+
+- edit data files often. Over HTTP the app adds a cache-busting query to every data file, so a plain reload picks up
+  your edits;
+- want to open the app from another device on the same network, such as a tablet or the computer that drives a
+  projector.
+
+### Running an HTTP server
+
+Any static file server works, as long as it supports HTTP **Range requests**. Without them the browser cannot seek
+in the audio: rewind, fast-forward, the progress bar and clicking a lyric line all jump back to 0:00.
+
+> **Do not use `python3 -m http.server`.** It does not support Range requests, so seeking does not work.
+
+Run one of these commands in the project folder (the folder that contains `index.html`), then open the URL shown:
+
+| Needs | Command | Open |
+|---|---|---|
+| Node.js (recommended) | `npx http-server -c-1` | http://localhost:8080/ |
+| Node.js | `npx serve` | http://localhost:3000/ |
+| Python 3 | `python3 -m pip install rangehttpserver` (once), then `python3 -m RangeHTTPServer` | http://localhost:8000/ |
+| Ruby | `ruby -run -e httpd . -p 8000` | http://localhost:8000/ |
+
+- **`npx`** comes with Node.js. The first run downloads the server package, so it needs an internet connection once.
+- **`-c-1`** turns off `http-server`'s caching, so edited MP3s and pictures are also picked up on reload. Add
+  `-p 9000` to use another port, or `-a 127.0.0.1` to accept connections from this computer only.
+- **Other devices.** `http-server` lists the addresses it listens on, including the network one (e.g.
+  `http://192.168.1.20:8080`). Open that address on the other device. Your firewall may ask whether to allow it.
+- **Ruby.** The `ruby` built into macOS works as is. With Ruby 3.0 or later, run `gem install webrick` first.
+- Press **Ctrl+C** in the terminal to stop the server.
+
+To check that a server supports Range requests, ask it for part of an MP3. It should answer `206`, not `200`:
+
+```bash
+curl -s -o /dev/null -w '%{http_code}\n' -H 'Range: bytes=0-99' \
+  http://localhost:8080/assets/AnlunHuang/ChineseRequiem/Chapter1.mp3
+```
+
+Browser recordings of lyrics timing are stored per origin, and the port is part of the origin. A recording made at
+`http://localhost:8080` is not visible at `http://localhost:3000` or from `file://`. Use the same server and port each
+time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyrics](#flow-timing-the-lyrics)).
 
 ## Screen layout
 
@@ -42,15 +93,15 @@ it adds a cache-busting query to every data file, so a plain reload picks up you
 ┌───────────────┬─────────────────────────────────────────────────────────────┐
 │ ♫ / Lyrics    │ ◀ Prev  Lyrics:[Auto|Manual]  Work · Movement  ⤢ Max Next ▶ │  top controls
 │               ├─────────────────────────────────────────────────────────────┤
-│ ▸ Artist      │                                                             │
-│   ▸ Work      │        lines above (dimmed)                                 │
+│ ▾ Artist      │                                                             │
+│   ▾ Work      │        lines above (dimmed)                                 │
 │     1. Mvt    │   ▌    CURRENT LINE (highlighted)                           │  lyrics
 │     2. Mvt    │        lines below (dimmed)                                 │
-│               │                                                             │
-│               ├─────────────────────────────────────────────────────────────┤
+│ ▸ Artist      │                                                             │
+│ ▸ Artist      ├─────────────────────────────────────────────────────────────┤
 │               │ ◀◀  −15s  ▶  +15s  ▶▶   ━━━━━━━●━━━━━━━━━━   1:23 / 5:40    │  bottom controls
 │ LYRICS TIMING ├─────────────────────────────────────────────────────────────┤
-│   (collapsed) │ Artist · Work Op. (year) · 首演: …   │ Description          │  info pane
+│   (collapsed) │ Artist · Work Op. (year) · Premiere: … │ Description        │  info pane
 └───────────────┴─────────────────────────────────────────────────────────────┘
 ```
 
@@ -76,7 +127,7 @@ it adds a cache-busting query to every data file, so a plain reload picks up you
   play/pause, +15s, and ▶▶ fast-forward to the end. Next to them are a draggable progress bar and the elapsed / total
   time.
 - **Bottom info pane.** Shows the artist's name, the work's title with its opus number and year, the premiere
-  (`首演: …`) and the work's description.
+  (`Premiere: …`) and the work's description.
 
 ## Playing music
 
@@ -282,7 +333,7 @@ onePageMp3Work({
   titleSort: "Chinese Requiem",   // tree sort key (optional; defaults to title)
   year: 2004,                     // info pane: "title Op. 63 (2004)"
   opusNumber: "Op. 63",
-  premiered: "Toronto, May 2004", // info pane: "首演: Toronto, May 2004"
+  premiered: "Toronto, May 2004", // info pane: "Premiere: Toronto, May 2004"
   description: "…",               // info pane; "\n" starts a new line
   movements: [
     {

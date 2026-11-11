@@ -182,7 +182,7 @@ Choose a mode with **Lyrics: Auto | Manual** at the bottom of the left pane, or 
 | | **Auto** (default) | **Manual** |
 |---|---|---|
 | What moves the highlight | The audio position | The operator: ↓ / → for the next line, ↑ / ← for the previous one, or a click on any line |
-| Clicking a lyric line | Jumps the audio to that line's start time, if the line is timed | Highlights that line |
+| Clicking a lyric line | Jumps the audio to that line's start (see below) | Highlights that line and jumps the audio to its start (not while recording) |
 | ← / → keys | Seek 5 s (15 s with Shift) | Previous / next line |
 | Typical use | Listening to a recording | Live singing, or [recording the timing](#flow-timing-the-lyrics) |
 
@@ -193,6 +193,10 @@ How Auto mode chooses the current line:
    timed line, no line is highlighted.
 2. If the movement has no times at all, the lines are spread evenly over the length of the audio. This is a rough
    approximation.
+
+Clicking a lyric line (in either mode) jumps the audio to where that line starts: its time if it has one. A line without
+a time is placed evenly between the nearest timed lines before and after it, or the start and end of the audio where
+there are none. With no times at all, that is the same even spread as rule 2.
 
 In Manual mode, a hint (`↓→ next ↑← back`) shows in the corner of the lyrics. The movement starts with no line
 highlighted, and the first ↓ highlights line 1. Holding a key down advances only one line. ◀◀ (rewind to the
@@ -265,6 +269,8 @@ record the times in the app by pressing a key as each line starts.
 Recording rules:
 
 - A time is recorded only while the audio is **playing**, and only when you move **forward**.
+- Clicking a line works like the keys: it moves the highlight there and records that line's time. While recording,
+  a click does not move the audio.
 - Each recording builds on the existing times, so you can redo just part of a movement. Use ↑ to put the highlight
   on the line before the part, move the audio to a little before it with the progress bar or −15s, press play, and
   continue with ↓.
@@ -273,8 +279,8 @@ Recording rules:
 
 ### 2. Check
 
-Switch to **Auto** and play. Clicking a timed line in Auto mode jumps the audio to that line's start time, which is a
-quick way to check single lines.
+Switch to **Auto** and play. Clicking a timed line jumps the audio to that line's start time, which is a quick way to
+check single lines.
 
 ### 3. Save to the project
 

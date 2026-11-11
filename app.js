@@ -339,15 +339,14 @@ function renderLyrics(movement, keepHighlight = false) {
       } else {
         el.textContent = translationOnly ? lyric.translation || lyric.text : lyric.text;
       }
-      // Manual mode: clicking jumps the highlight to this line.
-      // Auto mode: if line has a timestamp, clicking seeks there.
+      // Clicking seeks to where the line starts (see lyricLineStartTime); in manual mode it
+      // also jumps the highlight to this line. While recording it doesn't seek: the click
+      // records the line's time from where the audio is.
       el.addEventListener('click', () => {
-        if (state.highlightMode === 'manual') {
-          selectLyricLine(idx);
-        } else {
-          const time = lyricTimes(movement)?.[idx];
-          if (time != null) audio.currentTime = time;
-        }
+        if (state.highlightMode === 'manual') selectLyricLine(idx);
+        if (timing.recording) return;
+        const time = lyricLineStartTime(movement, idx);
+        if (time != null) audio.currentTime = time;
       });
       inner.appendChild(el);
     });
@@ -407,7 +406,8 @@ function centerCurrentLine() {
    LYRICS HIGHLIGHT MODE
    auto:   current line follows audio time (timestamps or interpolation)
    manual: operator moves the highlight with the keyboard (see KEYBOARD
-           SHORTCUTS) or by clicking a line; audio time is ignored
+           SHORTCUTS) or by clicking a line (which also seeks there, unless
+           recording); audio time doesn't move the highlight
 ================================================================ */
 function setHighlightMode(mode) {
   state.highlightMode = mode;
@@ -573,6 +573,26 @@ function getCurrentLyricIdx() {
     Math.floor((t / duration) * lyrics.length),
     lyrics.length - 1
   );
+}
+
+// Audio time where lyric line idx starts, for seeking to it (null while the duration
+// needed is unknown). A timed line starts at its time. An untimed line is placed evenly
+// between the nearest timed lines around it — the audio's start and end stand in where
+// there is none — so with no timing at all this inverts the linear interpolation above.
+function lyricLineStartTime(movement, idx) {
+  const times = lyricTimes(movement) ?? [];
+  if (times[idx] != null) return times[idx];
+
+  const n = movement.lyrics.length;
+  let prev = idx, next = idx;
+  while (prev >= 0 && times[prev] == null) prev--;
+  while (next < n && times[next] == null) next++;
+  const [prevIdx, prevTime] = prev >= 0 ? [prev, times[prev]] : [0, 0];
+  const [nextIdx, nextTime] = next < n  ? [next, times[next]] : [n, audio.duration];
+  if (!isFinite(nextTime)) return null;
+  const t = prevTime + (idx - prevIdx) / (nextIdx - prevIdx) * (nextTime - prevTime);
+  // A hair later, so rounding can't land the interpolated highlight on the line before
+  return Math.min(t + 0.01, nextTime);
 }
 
 /* ================================================================

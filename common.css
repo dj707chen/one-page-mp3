@@ -304,6 +304,29 @@ body {
   font-size: 0.95rem;
   color: var(--text-secondary);
 }
+#np-translation::before { content: '('; }
+#np-translation::after  { content: ')'; }
+
+/* While the lyrics panel shows two columns, the titles split the same way: the original
+   titles centered over the original lyrics, the translations over the translations
+   (same --lyrics-original-width, so dragging the divider moves both), without the
+   translations' parentheses */
+#right-pane:has(#lyrics-inner.bilingual) #now-playing {
+  display: grid;
+  grid-template-columns: var(--lyrics-original-width) 1fr;
+  align-items: baseline;
+}
+
+#right-pane:has(#lyrics-inner.bilingual) #now-playing > * {
+  min-width: 0;
+  padding: 0 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#right-pane:has(#lyrics-inner.bilingual) #np-translation { margin-left: 0; }
+#right-pane:has(#lyrics-inner.bilingual) #np-translation::before,
+#right-pane:has(#lyrics-inner.bilingual) #np-translation::after { content: none; }
 
 /* ─── Song Display (lyrics area) ─── */
 #song-display {

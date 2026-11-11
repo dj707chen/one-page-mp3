@@ -130,7 +130,9 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
   - **Now playing** shows the work title and the movement number and title, then both translations (if any)
     together in parentheses, e.g. "安魂曲 I. 永远安息 (Requiem I. Eternal Rest)". It follows the **Show** check
     boxes: with only Original checked it shows "安魂曲 I. 永远安息", and with only Translation checked
-    "Requiem I. Eternal Rest" (a title without a translation shows its original).
+    "Requiem I. Eternal Rest" (a title without a translation shows its original). While the lyrics panel shows two
+    columns, the top bar is split the same way: the original titles are centered over the original lyrics and the
+    translations, without parentheses, over the translations. Dragging the divider moves both.
 - **Song playing section (lyrics)**
   - **Movement heading.** The number and title, then the subtitle (e.g. the Bible references) and the voicing.
   - **Lyric lines.** The current line has a gold left border, a tinted background and a larger font. Up to 4 lines

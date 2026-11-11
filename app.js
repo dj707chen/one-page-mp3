@@ -132,16 +132,24 @@ function buildFlatList() {
 /* ================================================================
    BUILD NAVIGATION TREE
 ================================================================ */
+// Artists, and an artist's works, in tree order (alphabetical)
+function sortedArtists() {
+  return [...APP_DATA.artists].sort((a, b) =>
+    (a.nameSort || a.name).localeCompare(b.nameSort || b.name)
+  );
+}
+
+function sortedWorks(composer) {
+  return [...composer.works].sort((a, b) =>
+    (a.titleSort || a.title).localeCompare(b.titleSort || b.title)
+  );
+}
+
 function buildTree() {
   const tree = document.getElementById('composer-tree');
   tree.innerHTML = '';
 
-  // Sort composers alphabetically
-  const composers = [...APP_DATA.artists].sort((a, b) =>
-    (a.nameSort || a.name).localeCompare(b.nameSort || b.name)
-  );
-
-  composers.forEach(composer => {
+  sortedArtists().forEach(composer => {
     const composerEl = document.createElement('div');
     composerEl.className = 'tree-composer';  // artist and work folders start collapsed
 
@@ -154,11 +162,7 @@ function buildTree() {
     const worksEl = document.createElement('div');
     worksEl.className = 'tree-works';
 
-    const works = [...composer.works].sort((a, b) =>
-      (a.titleSort || a.title).localeCompare(b.titleSort || b.title)
-    );
-
-    works.forEach(work => {
+    sortedWorks(composer).forEach(work => {
       const workEl = document.createElement('div');
       workEl.className = 'tree-work';
 
@@ -189,6 +193,22 @@ function buildTree() {
     composerEl.appendChild(worksEl);
     tree.appendChild(composerEl);
   });
+}
+
+// On page load: select the first movement of the first artist's first work in the
+// tree (skipping any without one), opening their folders to show it
+function selectFirstMovement() {
+  for (const composer of sortedArtists()) {
+    for (const work of sortedWorks(composer)) {
+      const movement = work.movements?.[0];
+      if (!movement) continue;
+      loadMovement(composer, work, movement);
+      const movEl = document.querySelector('.tree-movement.active');
+      movEl?.closest('.tree-work').classList.add('open');
+      movEl?.closest('.tree-composer').classList.add('open');
+      return;
+    }
+  }
 }
 
 /* ================================================================
@@ -1205,4 +1225,5 @@ loadArtists().then(() => {
   buildTree();
   updateNavButtons();
   updateTimingPanel();
+  selectFirstMovement();
 });

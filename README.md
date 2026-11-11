@@ -128,11 +128,11 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
 - **Top control section**
   - **◀ Prev / Next ▶** go to the previous or next movement. If music is playing, the new movement starts playing.
   - **Now playing** shows the work title and the movement number and title, then both translations (if any)
-    together in parentheses, e.g. "安魂曲 I. 永远安息 (Requiem I. Eternal Rest)". It follows the **Show** check
-    boxes: with only Original checked it shows "安魂曲 I. 永远安息", and with only Translation checked
+    after them, without parentheses, e.g. "安魂曲 I. 永远安息  Requiem I. Eternal Rest". It follows the **Show**
+    check boxes: with only Original checked it shows "安魂曲 I. 永远安息", and with only Translation checked
     "Requiem I. Eternal Rest" (a title without a translation shows its original). While the lyrics panel shows two
     columns, the top bar is split the same way: the original titles are centered over the original lyrics and the
-    translations, without parentheses, over the translations. Dragging the divider moves both.
+    translations over the translations. Dragging the divider moves both.
 - **Song playing section (lyrics)**
   - **Movement heading.** The number and title, then the subtitle (e.g. the Bible references) and the voicing.
   - **Lyric lines.** The current line has a gold left border, a tinted background and a larger font. Up to 4 lines
@@ -376,7 +376,7 @@ onePageMp3Artist({
 onePageMp3Work({
   id: "chinese-requiem",          // unique; used in each .timing.js "work" field
   title: "安魂曲",                 // shown in the tree, top bar and info pane
-  titleTranslation: "Requiem",    // top bar: "安魂曲 I. 永远安息 (Requiem I. Eternal Rest)" (optional)
+  titleTranslation: "Requiem",    // top bar: "安魂曲 I. 永远安息  Requiem I. Eternal Rest" (optional)
   titleSort: "Chinese Requiem",   // tree sort key (optional; defaults to title)
   year: 2004,                     // info pane: "title Op. 63 (2004)"
   opusNumber: "Op. 63",
@@ -387,7 +387,7 @@ onePageMp3Work({
       id: "ch1",                  // unique within the work; used in the .timing.js "movement" field
       number: "I",
       title: "永远安息",
-      titleTranslation: "Eternal Rest",  // top bar, in the (parentheses) after the original titles; translation column's heading (optional)
+      titleTranslation: "Eternal Rest",  // top bar, after the original titles; translation column's heading (optional)
       subtitle: "诗篇116:7,9",     // lyrics heading, in [brackets] (optional)
       subtitleTranslation: "Psalm 116:7,9",  // translation column's heading (optional)
       voicing: "合唱",             // lyrics heading, second line (optional)

@@ -196,8 +196,8 @@ function buildTree() {
 ================================================================ */
 // Now-playing header, following the Show check boxes (see LYRICS SHOWN): Original
 // shows the work and movement titles, Translation their titleTranslations (if any)
-// together in parentheses after them; Translation alone shows the translations
-// without parentheses (a title without one shows its original)
+// after them; Translation alone shows only the translations (a title without one
+// shows its original)
 function updateNowPlaying(work, movement) {
   const { original: showOriginal, translation: showTranslation } = state.lyricsShown;
   const [workTitle, movementTitle] = showOriginal

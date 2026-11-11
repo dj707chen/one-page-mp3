@@ -298,19 +298,16 @@ body {
 #np-label:not(:empty) + #np-title,
 #np-label-translation:not(:empty) + #np-title-translation:not(:empty) { margin-left: 1em; }
 
-/* "(work translation  movement translation)" after the original titles */
+/* "work translation  movement translation" after the original titles, no parentheses */
 #np-translation {
   margin-left: 2em;
   font-size: 0.95rem;
   color: var(--text-secondary);
 }
-#np-translation::before { content: '('; }
-#np-translation::after  { content: ')'; }
 
 /* While the lyrics panel shows two columns, the titles split the same way: the original
    titles centered over the original lyrics, the translations over the translations
-   (same --lyrics-original-width, so dragging the divider moves both), without the
-   translations' parentheses */
+   (same --lyrics-original-width, so dragging the divider moves both) */
 #right-pane:has(#lyrics-inner.bilingual) #now-playing {
   display: grid;
   grid-template-columns: var(--lyrics-original-width) 1fr;
@@ -325,8 +322,6 @@ body {
 }
 
 #right-pane:has(#lyrics-inner.bilingual) #np-translation { margin-left: 0; }
-#right-pane:has(#lyrics-inner.bilingual) #np-translation::before,
-#right-pane:has(#lyrics-inner.bilingual) #np-translation::after { content: none; }
 
 /* ─── Song Display (lyrics area) ─── */
 #song-display {

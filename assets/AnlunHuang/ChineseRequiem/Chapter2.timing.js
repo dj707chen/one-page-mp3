@@ -99,9 +99,9 @@ onePageMp3Timing({
     {"time":null,"text":"我等候。"},
     {"time":null,"text":"复活的黎明，"},
     {"time":null,"text":"终将来临。"},
-    {"time":null,"text":"永在从今到永远，"},
+    {"time":null,"text":"永在您爱中到永远，"},
     {"time":null,"text":"蒙恩惠，"},
     {"time":null,"text":"得安慰。"},
-    {"time":null,"text":"蒙恩惠。"}
+    {"time":null,"text":"蒙恩惠，得安慰。"}
   ]
 });

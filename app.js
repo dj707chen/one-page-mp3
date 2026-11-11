@@ -192,6 +192,11 @@ function buildTree() {
 /* ================================================================
    LOAD MOVEMENT
 ================================================================ */
+// A work's or movement's title, followed by its titleTranslation (if any) in parentheses
+function translatedTitle(item) {
+  return item.title + (item.titleTranslation ? ` (${item.titleTranslation})` : '');
+}
+
 function loadMovement(composer, work, movement, autoplay = false) {
   // Update state
   const flatEntry = movementEntry(movement);
@@ -208,9 +213,9 @@ function loadMovement(composer, work, movement, autoplay = false) {
   });
 
   // Update now-playing header
-  document.getElementById('np-label').textContent = work.title;
+  document.getElementById('np-label').textContent = translatedTitle(work);
   document.getElementById('np-title').textContent =
-    `${movement.number}. ${movement.title}`;
+    `${movement.number}. ${translatedTitle(movement)}`;
 
   // Update info pane
   document.getElementById('info-composer').textContent = composer.name;
@@ -277,13 +282,22 @@ function renderLyrics(movement) {
     msg.textContent = 'No lyrics available for this movement.';
     inner.appendChild(msg);
   } else {
-    // Movement heading
+    // Movement heading (bilingual: the translated heading heads the translation column)
     const meta = document.createElement('div');
     meta.className = 'lyric-meta';
-    meta.textContent =
-      `${movement.number}. ${movement.title}` +
-      (movement.subtitle ? ` [${movement.subtitle}]` : '') +
-      (movement.voicing  ? `\n${movement.voicing}` : '');
+    const heading = movementHeading(movement.number, movement.title, movement.subtitle, movement.voicing);
+    if (bilingual) {
+      const original    = document.createElement('span');
+      const translation = document.createElement('span');
+      original.className    = 'lyric-original';
+      translation.className = 'lyric-translation';
+      original.textContent    = heading;
+      translation.textContent = movementHeading(movement.number, movement.titleTranslation,
+        movement.subtitleTranslation, movement.voicingTranslation);
+      meta.append(original, translation);
+    } else {
+      meta.textContent = heading;
+    }
     meta.style.whiteSpace = 'pre-line';
     inner.appendChild(meta);
 
@@ -323,6 +337,12 @@ function renderLyrics(movement) {
 
   // Manual mode starts with no line highlighted; the first key press highlights line 0
   highlightLyricLine(state.highlightMode === 'manual' ? -1 : getCurrentLyricIdx(), true);
+}
+
+// "number. title [subtitle]", then voicing on a second line; missing parts are left out
+function movementHeading(number, title, subtitle, voicing) {
+  const firstLine = [title && `${number}. ${title}`, subtitle && `[${subtitle}]`].filter(Boolean).join(' ');
+  return [firstLine, voicing].filter(Boolean).join('\n');
 }
 
 /* ================================================================

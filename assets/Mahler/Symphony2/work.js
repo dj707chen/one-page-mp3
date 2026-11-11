@@ -1,7 +1,8 @@
 /* Work data for OnePageMP3: loaded by app.js from its artist's workFiles list */
 onePageMp3Work({
   id: "mahler-symphony2",
-  title: "Mahler: Symphony No. 2",
+  title: "Symphony No. 2",
+  titleTranslation: "第2交响曲",
   titleSort: "Mahler: Symphony No. 2",
   year: 1902,
   opusNumber: "Op. 63",
@@ -12,7 +13,11 @@ onePageMp3Work({
       id: "ch1",
       number: "I",
       title: "Allegro maestoso",
-      subtitle: "Mit durchaus ernstem und feierlichem Ausdruck",
+      titleTranslation: "庄严的快板",
+      titleSort: "Allegro maestoso",
+      description: "The first movement of Mahler's Symphony No. 2 is marked by its grandeur and intensity. It sets the stage for the symphony's exploration of life and death, with a rich orchestral texture and dramatic contrasts.",
+      subtitle: "With a thoroughly serious and solemn expression",
+      subtitleTranslation: "以完全严肃和庄重的表情",
       voicing: "Orchestra",
       audio: "assets/Mahler/Symphony2/Chapter1.mp3",
       thumbnail: "assets/Mahler/Symphony2/Chapter1.jpg"

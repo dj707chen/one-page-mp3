@@ -119,7 +119,8 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
 - **Top control section**
   - **◀ Prev / Next ▶** go to the previous or next movement. If music is playing, the new movement starts playing.
   - **Lyrics: Auto | Manual** switches the [highlight mode](#lyrics-highlight-modes).
-  - **Now playing** shows the work title and the movement number and title.
+  - **Now playing** shows the work title and the movement number and title, each followed by its translation (if any)
+    in parentheses.
   - **⤢ Maximize** shows only the lyrics. See [Maximized lyrics](#maximized-lyrics).
 - **Song playing section (lyrics)**
   - **Movement heading.** The number and title, then the subtitle (e.g. the Bible references) and the voicing.
@@ -130,7 +131,9 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
     [Flow: modifying lyrics](#flow-modifying-lyrics)), the panel is divided into two columns: the original lyrics on
     the left (40% of the width) and the translation on the right (the other 60%, since English usually needs more
     room). Each line and its translation share one row, so they are highlighted
-    together and stay level even when one of them wraps. Movements without translations keep one full-width column.
+    together and stay level even when one of them wraps. The translation column has its own movement heading, made from
+    the movement's `titleTranslation`, `subtitleTranslation` and `voicingTranslation` in `work.js`. Movements without
+    translations keep one full-width column.
   - **Divider.** Drag the line between the two columns to change their widths (from 20% to 80% for the original).
     It turns gold under the mouse. Double-click it to go back to 40%. The width is remembered in this browser.
   - **Picture.** The movement's picture (`thumbnail`) covers the lyrics until playback starts, with "▶ Click to play".
@@ -352,7 +355,8 @@ onePageMp3Artist({
 /* Work data for OnePageMP3: loaded by app.js from its artist's workFiles list */
 onePageMp3Work({
   id: "chinese-requiem",          // unique; used in each .timing.js "work" field
-  title: "安魂曲 (Requiem)",       // shown in the tree, top bar and info pane
+  title: "安魂曲",                 // shown in the tree, top bar and info pane
+  titleTranslation: "Requiem",    // top bar, after the title in (parentheses) (optional)
   titleSort: "Chinese Requiem",   // tree sort key (optional; defaults to title)
   year: 2004,                     // info pane: "title Op. 63 (2004)"
   opusNumber: "Op. 63",
@@ -363,8 +367,11 @@ onePageMp3Work({
       id: "ch1",                  // unique within the work; used in the .timing.js "movement" field
       number: "I",
       title: "永远安息",
+      titleTranslation: "Eternal Rest",  // top bar, after the title in (parentheses); translation column's heading (optional)
       subtitle: "诗篇116:7,9",     // lyrics heading, in [brackets] (optional)
+      subtitleTranslation: "Psalm 116:7,9",  // translation column's heading (optional)
       voicing: "合唱",             // lyrics heading, second line (optional)
+      voicingTranslation: "Chorus",          // translation column's heading (optional)
       audio: "assets/AnlunHuang/ChineseRequiem/Chapter1.mp3",
       thumbnail: "assets/AnlunHuang/ChineseRequiem/Chapter1.jpg"   // optional
     }

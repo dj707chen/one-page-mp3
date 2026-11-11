@@ -355,12 +355,16 @@ body {
 .lyrics-divider:hover::before,
 .lyrics-divider.dragging::before { border-left-color: var(--accent); }
 
-#lyrics-inner.bilingual .lyric-line {
+#lyrics-inner.bilingual .lyric-line,
+#lyrics-inner.bilingual .lyric-meta {
   display: grid;
   grid-template-columns: var(--lyrics-original-width) 1fr;
   padding-left: 0;
   padding-right: 0;
 }
+
+/* Same (invisible) left border as a line, so the heading's columns line up with the lines' */
+#lyrics-inner.bilingual .lyric-meta { border-left: 3px solid transparent; }
 
 #lyrics-inner.bilingual .lyric-original    { padding: 0 24px 0 14px; }
 #lyrics-inner.bilingual .lyric-translation { padding: 0 14px 0 24px; }

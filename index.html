@@ -37,6 +37,20 @@
         <input type="file" id="timing-file-input" accept=".js,.json" multiple hidden>
       </div>
     </div>
+    <div id="view-panel">
+      <div id="mode-toggle" role="group" aria-label="Lyrics highlight mode">
+        <span id="mode-toggle-label">Lyrics:</span>
+        <button class="ctrl-btn" data-mode="auto"   title="Highlight follows audio playback">Auto</button>
+        <button class="ctrl-btn" data-mode="manual" title="Operator advances lyrics: &darr; / &rarr; next, &uarr; / &larr; back">Manual</button>
+      </div>
+      <button class="ctrl-btn" id="btn-maximize" title="Maximize lyrics panel (Esc to restore)">&#x2922; Maximize</button>
+      <div id="lyrics-shown" role="group" aria-label="Lyrics shown"
+           title="Which lyrics to show; at least one must be checked">
+        <span id="lyrics-shown-label">Show:</span>
+        <label><input type="checkbox" value="original"    checked> Original</label>
+        <label><input type="checkbox" value="translation" checked> Translation</label>
+      </div>
+    </div>
   </aside>
 
   <!-- ══════════════════════════════════════
@@ -47,16 +61,10 @@
     <!-- Top control section -->
     <div id="top-controls">
       <button class="ctrl-btn" id="btn-prev">&#9664; Prev</button>
-      <div id="mode-toggle" role="group" aria-label="Lyrics highlight mode">
-        <span id="mode-toggle-label">Lyrics:</span>
-        <button class="ctrl-btn" data-mode="auto"   title="Highlight follows audio playback">Auto</button>
-        <button class="ctrl-btn" data-mode="manual" title="Operator advances lyrics: &darr; / &rarr; next, &uarr; / &larr; back">Manual</button>
-      </div>
       <div id="now-playing">
         <span id="np-label"></span>
         <span id="np-title">Select a movement to begin</span>
       </div>
-      <button class="ctrl-btn" id="btn-maximize" title="Maximize lyrics panel (Esc to restore)">&#x2922; Maximize</button>
       <button class="ctrl-btn" id="btn-next">Next &#9654;</button>
     </div>
 

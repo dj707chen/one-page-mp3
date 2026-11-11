@@ -96,7 +96,7 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
 
 ```
 ┌───────────────┬─────────────────────────────────────────────────────────────┐
-│ ♫ / Lyrics    │ ◀ Prev  Lyrics:[Auto|Manual]  Work · Movement  ⤢ Max Next ▶ │  top controls
+│ ♫ / Lyrics    │ ◀ Prev               Work · Movement                 Next ▶ │  top controls
 │               ├────────────────────────┬────────────────────────────────────┤
 │ ▾ Artist      │                        │                                    │
 │   ▾ Work      │   lines above (dimmed) │   their translations               │
@@ -107,6 +107,10 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
 │               │ ◀◀  −15s  ▶  +15s  ▶▶   ━━━━━━━●━━━━━━━━━━   1:23 / 5:40    │  bottom controls
 │ LYRICS TIMING ├─────────────────────────────────────────────────────────────┤
 │   (collapsed) │ Artist · Work Op. (year) · Premiere: … │ Description        │  info pane
+│ Lyrics:[Auto| │                                                             │
+│ Manual] ⤢ Max │                                                             │
+│ Show: ☑ Orig. │                                                             │
+│   ☑ Transl.   │                                                             │
 └───────────────┴─────────────────────────────────────────────────────────────┘
 ```
 
@@ -114,14 +118,16 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
   - **Tree.** Artists, then works, then movements. Artists are sorted alphabetically by `nameSort` and works by
     `titleSort`. Movements keep the order they have in `work.js`. Artist and work folders start collapsed; click one
     to open or close it. The movement that is playing is highlighted.
-  - **LYRICS TIMING panel.** Docked at the bottom of the pane and collapsed by default; open it with its `^` button.
+  - **LYRICS TIMING panel.** Docked near the bottom of the pane and collapsed by default; open it with its `^` button.
     See [Flow: timing the lyrics](#flow-timing-the-lyrics).
+  - **Lyrics: Auto | Manual** (below the LYRICS TIMING panel) switches the
+    [highlight mode](#lyrics-highlight-modes).
+  - **⤢ Maximize** (next to it) shows only the lyrics. See [Maximized lyrics](#maximized-lyrics).
+  - **Show: ☑ Original ☑ Translation** (under them) chooses which lyrics the panel shows. See **Translation** below.
 - **Top control section**
   - **◀ Prev / Next ▶** go to the previous or next movement. If music is playing, the new movement starts playing.
-  - **Lyrics: Auto | Manual** switches the [highlight mode](#lyrics-highlight-modes).
   - **Now playing** shows the work title and the movement number and title, each followed by its translation (if any)
     in parentheses.
-  - **⤢ Maximize** shows only the lyrics. See [Maximized lyrics](#maximized-lyrics).
 - **Song playing section (lyrics)**
   - **Movement heading.** The number and title, then the subtitle (e.g. the Bible references) and the voicing.
   - **Lyric lines.** The current line has a gold left border, a tinted background and a larger font. Up to 4 lines
@@ -134,6 +140,12 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
     together and stay level even when one of them wraps. The translation column has its own movement heading, made from
     the movement's `titleTranslation`, `subtitleTranslation` and `voicingTranslation` in `work.js`. Movements without
     translations keep one full-width column.
+  - **Original / Translation check boxes.** Both are checked by default, which gives the two columns above. Uncheck
+    **Translation** to show only the original lyrics, or **Original** to show only the translation, each in one
+    full-width column. With only Translation checked, a line without a translation shows its original text, and so
+    does a movement with no translations at all. At least one box must stay checked, so the last checked box is
+    disabled. The highlighted line stays the same when you change them. The choice applies to every movement and is
+    not saved: reloading the page checks both again.
   - **Divider.** Drag the line between the two columns to change their widths (from 20% to 80% for the original).
     It turns gold under the mouse. Double-click it to go back to 40%. The new width lasts until the page is reloaded.
   - **Picture.** The movement's picture (`thumbnail`) covers the lyrics until playback starts, with "▶ Click to play".
@@ -159,7 +171,7 @@ If a movement's MP3 file is missing, its lyrics still display. The browser conso
 
 ## Lyrics highlight modes
 
-Choose a mode with **Lyrics: Auto | Manual** in the top bar, or start in Manual with the URL parameter
+Choose a mode with **Lyrics: Auto | Manual** at the bottom of the left pane, or start in Manual with the URL parameter
 `?highlight-mode=manual`.
 
 | | **Auto** (default) | **Manual** |
@@ -236,7 +248,7 @@ record the times in the app by pressing a key as each line starts.
 
 ### 1. Record
 
-1. Open the **LYRICS TIMING** panel with the `^` button at the bottom of the left pane.
+1. Open the **LYRICS TIMING** panel with the `^` button near the bottom of the left pane.
 2. Select the movement. The panel shows how many lines are timed (for example `22 / 37 lines timed`) and where the
    times come from: the `.timing.js` file or `this browser`.
 3. Click **● Rec**. This switches to Manual mode, and `● REC` appears in the lyrics corner.

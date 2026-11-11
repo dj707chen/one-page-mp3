@@ -12,7 +12,8 @@
    movement.lyrics = [{ text, translation }] once loaded.
    If any line has a translation, the lyrics panel shows two columns:
    each line's original text beside its translation, highlighted together
-   (see BILINGUAL LYRICS DIVIDER).
+   (see BILINGUAL LYRICS DIVIDER), unless the Original or Translation
+   check box is unchecked (see LYRICS SHOWN).
    Auto mode highlights by the timing in that file (or recorded in this
    browser), else by linear interpolation (approximate sync).
 ================================================================ */
@@ -106,6 +107,7 @@ const state = {
   isPlaying:    false,
   lastLyricIdx: -1,
   allMovements: [],  // flat list for prev/next
+  lyricsShown:  { original: true, translation: true },  // see LYRICS SHOWN
   highlightMode: new URLSearchParams(window.location.search).get('highlight-mode') === 'manual'
                  ? 'manual' : 'auto'
 };
@@ -263,10 +265,17 @@ function loadMovement(composer, work, movement, autoplay = false) {
 /* ================================================================
    RENDER LYRICS
 ================================================================ */
-function renderLyrics(movement) {
+// keepHighlight: re-rendering the same movement (the lyrics shown changed), so the
+// highlighted line stays
+function renderLyrics(movement, keepHighlight = false) {
   const inner = document.getElementById('lyrics-inner');
   inner.innerHTML = '';
-  const bilingual = !!movement.lyrics?.some(l => l.translation);
+  const hasTranslation = !!movement.lyrics?.some(l => l.translation);
+  const { original: showOriginal, translation: showTranslation } = state.lyricsShown;
+  // Two columns only when both are checked; Translation alone shows one column of
+  // translations (a line without one shows its original)
+  const bilingual       = hasTranslation && showOriginal && showTranslation;
+  const translationOnly = hasTranslation && !showOriginal;
   inner.classList.toggle('bilingual', bilingual);
   if (bilingual) inner.appendChild(lyricsDivider);
 
@@ -285,7 +294,10 @@ function renderLyrics(movement) {
     // Movement heading (bilingual: the translated heading heads the translation column)
     const meta = document.createElement('div');
     meta.className = 'lyric-meta';
-    const heading = movementHeading(movement.number, movement.title, movement.subtitle, movement.voicing);
+    const heading = translationOnly
+      ? movementHeading(movement.number, movement.titleTranslation || movement.title,
+          movement.subtitleTranslation || movement.subtitle, movement.voicingTranslation || movement.voicing)
+      : movementHeading(movement.number, movement.title, movement.subtitle, movement.voicing);
     if (bilingual) {
       const original    = document.createElement('span');
       const translation = document.createElement('span');
@@ -315,7 +327,7 @@ function renderLyrics(movement) {
         translation.textContent = lyric.translation;
         el.append(original, translation);
       } else {
-        el.textContent = lyric.text;
+        el.textContent = translationOnly ? lyric.translation || lyric.text : lyric.text;
       }
       // Manual mode: clicking jumps the highlight to this line.
       // Auto mode: if line has a timestamp, clicking seeks there.
@@ -336,7 +348,9 @@ function renderLyrics(movement) {
   inner.appendChild(bottomSpacer);
 
   // Manual mode starts with no line highlighted; the first key press highlights line 0
-  highlightLyricLine(state.highlightMode === 'manual' ? -1 : getCurrentLyricIdx(), true);
+  const idx = keepHighlight                   ? state.lastLyricIdx
+            : state.highlightMode === 'manual' ? -1 : getCurrentLyricIdx();
+  highlightLyricLine(idx, true);
 }
 
 // "number. title [subtitle]", then voicing on a second line; missing parts are left out
@@ -428,9 +442,10 @@ document.querySelectorAll('#mode-toggle .ctrl-btn').forEach(btn => {
 
 /* ================================================================
    MAXIMIZE LYRICS PANEL
-   Hides the left nav pane, the top-panel buttons (including Maximize
-   itself), the bottom control section and the info pane; lyrics font
-   grows (CSS). Esc restores. Space / arrow keys still control playback.
+   Hides the left nav pane (including the Lyrics mode and Maximize
+   buttons), the top-panel buttons, the bottom control section and the
+   info pane; lyrics font grows (CSS). Esc restores. Space / arrow keys
+   still control playback.
 ================================================================ */
 function setLyricsMaximized(on) {
   const app = document.getElementById('app');
@@ -443,6 +458,28 @@ function setLyricsMaximized(on) {
 document.getElementById('btn-maximize').addEventListener('click', e => {
   e.currentTarget.blur();
   setLyricsMaximized(true);
+});
+
+/* ================================================================
+   LYRICS SHOWN
+   The Original / Translation check boxes: both checked shows the two
+   columns (for a movement with a translation), Original alone the
+   original lyrics, Translation alone the translations (a line without
+   one shows its original). At least one stays checked: the last
+   checked box is disabled. Not saved: reloading the page checks both.
+================================================================ */
+const lyricsShownBoxes = [...document.querySelectorAll('#lyrics-shown input')];
+
+lyricsShownBoxes.forEach(box => {
+  box.addEventListener('change', () => {
+    state.lyricsShown[box.value] = box.checked;
+    const checked = lyricsShownBoxes.filter(b => b.checked);
+    lyricsShownBoxes.forEach(b => { b.disabled = checked.length === 1 && b.checked; });
+    box.blur();  // so Space / arrow keys keep controlling playback and lyrics
+
+    const movement = currentMovement();
+    if (movement) renderLyrics(movement, true);
+  });
 });
 
 /* ================================================================

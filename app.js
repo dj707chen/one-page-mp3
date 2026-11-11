@@ -194,9 +194,22 @@ function buildTree() {
 /* ================================================================
    LOAD MOVEMENT
 ================================================================ */
-// A work's or movement's title, followed by its titleTranslation (if any) in parentheses
-function translatedTitle(item) {
-  return item.title + (item.titleTranslation ? ` (${item.titleTranslation})` : '');
+// Now-playing header, following the Show check boxes (see LYRICS SHOWN): Original
+// shows the work and movement titles, Translation their titleTranslations (if any)
+// together in parentheses after them; Translation alone shows the translations
+// without parentheses (a title without one shows its original)
+function updateNowPlaying(work, movement) {
+  const { original: showOriginal, translation: showTranslation } = state.lyricsShown;
+  const [workTitle, movementTitle] = showOriginal
+    ? [work.title, movement.title]
+    : [work.titleTranslation || work.title, movement.titleTranslation || movement.title];
+  document.getElementById('np-label').textContent = workTitle;
+  document.getElementById('np-title').textContent = `${movement.number}. ${movementTitle}`;
+  document.getElementById('np-label-translation').textContent = work.titleTranslation || '';
+  document.getElementById('np-title-translation').textContent =
+    movement.titleTranslation ? `${movement.number}. ${movement.titleTranslation}` : '';
+  document.getElementById('np-translation').hidden =
+    !showOriginal || !showTranslation || (!work.titleTranslation && !movement.titleTranslation);
 }
 
 function loadMovement(composer, work, movement, autoplay = false) {
@@ -214,10 +227,7 @@ function loadMovement(composer, work, movement, autoplay = false) {
     el.classList.toggle('active', el.dataset.key === movementKey(movement));
   });
 
-  // Update now-playing header
-  document.getElementById('np-label').textContent = translatedTitle(work);
-  document.getElementById('np-title').textContent =
-    `${movement.number}. ${translatedTitle(movement)}`;
+  updateNowPlaying(work, movement);
 
   // Update info pane
   document.getElementById('info-composer').textContent = composer.name;
@@ -465,8 +475,9 @@ document.getElementById('btn-maximize').addEventListener('click', e => {
    The Original / Translation check boxes: both checked shows the two
    columns (for a movement with a translation), Original alone the
    original lyrics, Translation alone the translations (a line without
-   one shows its original). At least one stays checked: the last
-   checked box is disabled. Not saved: reloading the page checks both.
+   one shows its original). The top bar's titles follow them too (see
+   updateNowPlaying). At least one stays checked: the last checked box
+   is disabled. Not saved: reloading the page checks both.
 ================================================================ */
 const lyricsShownBoxes = [...document.querySelectorAll('#lyrics-shown input')];
 
@@ -478,7 +489,10 @@ lyricsShownBoxes.forEach(box => {
     box.blur();  // so Space / arrow keys keep controlling playback and lyrics
 
     const movement = currentMovement();
-    if (movement) renderLyrics(movement, true);
+    if (movement) {
+      renderLyrics(movement, true);
+      updateNowPlaying(currentWork(), movement);
+    }
   });
 });
 
@@ -1120,11 +1134,13 @@ document.addEventListener('keydown', e => {
 /* ================================================================
    HELPERS
 ================================================================ */
-function currentMovement() {
+function currentWork() {
   if (state.composerIdx === null) return null;
-  return APP_DATA.artists[state.composerIdx]
-    ?.works[state.workIdx]
-    ?.movements[state.movementIdx] ?? null;
+  return APP_DATA.artists[state.composerIdx]?.works[state.workIdx] ?? null;
+}
+
+function currentMovement() {
+  return currentWork()?.movements[state.movementIdx] ?? null;
 }
 
 function currentFlatIdx() {

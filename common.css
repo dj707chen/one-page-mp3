@@ -283,19 +283,27 @@ body {
   text-overflow: ellipsis;
 }
 
-#np-label {
+#np-label, #np-label-translation {
   font-size: 0.72rem;
   color: var(--accent);
   letter-spacing: 0.04em;
 }
 
-#np-title {
+#np-title, #np-title-translation {
   font-size: 0.95rem;
   color: var(--text-primary);
 }
 
 /* Space between work name and movement title (none while no song is selected) */
-#np-label:not(:empty) + #np-title { margin-left: 2.5em; }
+#np-label:not(:empty) + #np-title,
+#np-label-translation:not(:empty) + #np-title-translation:not(:empty) { margin-left: 1em; }
+
+/* "(work translation  movement translation)" after the original titles */
+#np-translation {
+  margin-left: 2em;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
 
 /* ─── Song Display (lyrics area) ─── */
 #song-display {

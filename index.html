@@ -45,7 +45,7 @@
       </div>
       <button class="ctrl-btn" id="btn-maximize" title="Maximize lyrics panel (Esc to restore)">&#x2922; Maximize</button>
       <div id="lyrics-shown" role="group" aria-label="Lyrics shown"
-           title="Which lyrics to show; at least one must be checked">
+           title="Which lyrics and titles to show; at least one must be checked">
         <span id="lyrics-shown-label">Show:</span>
         <label><input type="checkbox" value="original"    checked> Original</label>
         <label><input type="checkbox" value="translation" checked> Translation</label>
@@ -64,6 +64,7 @@
       <div id="now-playing">
         <span id="np-label"></span>
         <span id="np-title">Select a movement to begin</span>
+        <span id="np-translation" hidden>(<span id="np-label-translation"></span><span id="np-title-translation"></span>)</span>
       </div>
       <button class="ctrl-btn" id="btn-next">Next &#9654;</button>
     </div>

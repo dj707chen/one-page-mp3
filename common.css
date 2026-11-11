@@ -11,7 +11,7 @@
   --lyrics-current-color: #ffffff;
   --lyrics-current-bg: rgba(201, 162, 39, 0.12);
   --lyrics-current-border: #c9a227;
-  --lyrics-original-width: 40%;  /* bilingual lyrics: original column (default; drag the divider to change) */
+  --lyrics-original-width: 50%;  /* bilingual lyrics: original column (default; drag the divider to change) */
 
   --bg-primary:   #0d1117;
   --bg-secondary: #161b22;
@@ -309,7 +309,7 @@ body {
 .lyric-line.current {
   color: var(--lyrics-current-color);
   background: var(--lyrics-current-bg);
-  font-size: 2.15rem;
+  font-size: calc(1.95rem * 1.05);  /* 5% larger than the other lines */
   border-left-color: var(--lyrics-current-border);
 }
 
@@ -568,7 +568,7 @@ body {
 #app.lyrics-maximized #right-pane { grid-template-rows: auto 1fr; }
 #app.lyrics-maximized .lyric-meta { font-size: 1rem; }
 #app.lyrics-maximized .lyric-line { font-size: 2.7rem; }
-#app.lyrics-maximized .lyric-line.current { font-size: 3.1rem; }
+#app.lyrics-maximized .lyric-line.current { font-size: calc(2.7rem * 1.05); }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }

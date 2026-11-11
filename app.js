@@ -83,7 +83,7 @@ async function loadArtists() {
    Example: index.html?above-color=%238888aa&below-bg=rgba(0,0,0,0.2)
    Lyrics highlight mode: index.html?highlight-mode=manual  (default: auto)
    Selected movement: index.html?movement=<artist id>/<work id>/<movement id>
-   (see MOVEMENT IN URL)
+   (see MOVEMENT IN URL), at a position in whole seconds: &t=83 (see POSITION IN URL)
 ================================================================ */
 (function applyConfig() {
   const params = new URLSearchParams(window.location.search);
@@ -197,13 +197,16 @@ function buildTree() {
   });
 }
 
-// On page load: select the movement named in the URL (see MOVEMENT IN URL), else the
-// first movement of the first artist's first work in the tree (skipping any without
-// one), opening their folders to show it
+// On page load: select the movement named in the URL (see MOVEMENT IN URL), at the
+// position in the URL (see POSITION IN URL), else the first movement of the first
+// artist's first work in the tree (skipping any without one), opening their folders to
+// show it
 function selectInitialMovement() {
-  const entry = movementFromUrl() ?? firstTreeMovement();
+  const fromUrl = movementFromUrl();
+  const entry = fromUrl ?? firstTreeMovement();
   if (!entry) return;
   loadMovement(entry.composer, entry.work, entry.data);
+  if (fromUrl) startAtTimeFromUrl();
   const movEl = document.querySelector('.tree-movement.active');
   movEl?.closest('.tree-work').classList.add('open');
   movEl?.closest('.tree-composer').classList.add('open');
@@ -237,17 +240,72 @@ function movementFromUrl() {
   return entry ?? null;
 }
 
-// Rewrite the URL to name the movement, keeping the other parameters and adding no
-// history entry
+// Rewrite the URL to name the movement; selecting another movement drops the position
+// (see POSITION IN URL)
 function setMovementInUrl(movement) {
+  const key = movementKey(movement);
+  const values = { [MOVEMENT_PARAM]: key };
+  if (new URLSearchParams(location.search).get(MOVEMENT_PARAM) !== key) values[TIME_PARAM] = null;
+  rewriteUrlParams(values);
+}
+
+// Set the URL parameters (null removes one), keeping the others and adding no history
+// entry
+function rewriteUrlParams(values) {
   const params = new URLSearchParams(location.search);
-  params.set(MOVEMENT_PARAM, movementKey(movement));
-  const search = params.toString().replace(/%2F/g, '/');  // keep the key readable
+  Object.entries(values).forEach(([name, value]) => {
+    if (value == null) params.delete(name);
+    else params.set(name, value);
+  });
+  const search = params.toString().replace(/%2F/g, '/');  // keep the movement key readable
   try {
     history.replaceState(history.state, '', `?${search}${location.hash}`);
   } catch (err) {
     console.warn('Cannot rewrite the URL:', err.message);
   }
+}
+
+/* ================================================================
+   POSITION IN URL
+   The audio position of the selected movement is kept in the URL parameter t,
+   in seconds rounded down, so reloading or sharing the link continues from there:
+   index.html?movement=anlun-huang/chinese-requiem/ch2&t=83
+   It is used only with the movement parameter, and dropped (as at 0) when another
+   movement is selected. Browsers limit how often history.replaceState may be
+   called, so it is rewritten at most once every TIME_URL_INTERVAL ms.
+================================================================ */
+const TIME_PARAM = 't';
+const TIME_URL_INTERVAL = 1000;  // ms
+
+const timeInUrl = {
+  start:   null,  // seconds to seek to once the audio is loaded; the URL is kept until then
+  written: 0,     // Date.now() of the last rewrite
+  timer:   null   // pending rewrite, for a position given within the interval
+};
+
+// Seek the movement just loaded to the position in the URL, once its audio is loaded
+// (see the loadedmetadata listener); a position that isn't a number above 0 is dropped
+function startAtTimeFromUrl() {
+  const time = Number(new URLSearchParams(location.search).get(TIME_PARAM));
+  if (time > 0 && isFinite(time)) timeInUrl.start = time;
+  else rewriteUrlParams({ [TIME_PARAM]: null });
+}
+
+// Write the audio position to the URL: now, or when the interval since the last
+// rewrite ends (then it writes the position at that moment)
+function updateTimeInUrl() {
+  if (timeInUrl.start !== null || timeInUrl.timer) return;
+  const wait = timeInUrl.written + TIME_URL_INTERVAL - Date.now();
+  if (wait > 0) {
+    timeInUrl.timer = setTimeout(() => {
+      timeInUrl.timer = null;
+      updateTimeInUrl();
+    }, wait);
+    return;
+  }
+  timeInUrl.written = Date.now();
+  const time = Math.floor(audio.currentTime);
+  rewriteUrlParams({ [TIME_PARAM]: time > 0 ? time : null });
 }
 
 /* ================================================================
@@ -280,6 +338,7 @@ function loadMovement(composer, work, movement, autoplay = false) {
     state.movementIdx  = flatEntry.movementIdx;
   }
   state.lastLyricIdx = -1;
+  timeInUrl.start = null;
   setMovementInUrl(movement);
 
   // Highlight active tree node
@@ -1074,10 +1133,15 @@ audio.addEventListener('timeupdate', () => {
   if (state.composerIdx !== null && state.highlightMode === 'auto') {
     highlightLyricLine(getCurrentLyricIdx());
   }
+  updateTimeInUrl();
 });
 
 audio.addEventListener('loadedmetadata', () => {
   setTimeDisplay(0, audio.duration);
+  if (timeInUrl.start !== null) {
+    audio.currentTime = Math.min(timeInUrl.start, audio.duration);
+    timeInUrl.start = null;
+  }
 });
 
 audio.addEventListener('play', () => {

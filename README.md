@@ -234,6 +234,7 @@ Add parameters to the page URL. Colors are any CSS color, and `#` must be writte
 | `below-bg` | Background of the lines below the current line | `transparent` |
 | `highlight-mode` | `manual` starts in Manual mode; anything else starts in Auto | `auto` |
 | `movement` | The movement selected on load, as `<artist id>/<work id>/<movement id>` (the `id`s in `artist.js` and `work.js`). The app rewrites it whenever you select a movement, so reloading or sharing the URL opens that movement | the first movement in the tree |
+| `t` | The audio position of the `movement` above, in whole seconds (rounded down), e.g. `83` (used only with `movement`). The app rewrites it about once a second while the audio plays or you seek, so reloading or sharing the URL continues from there; it is removed when you select another movement | `0` |
 
 For example:
 

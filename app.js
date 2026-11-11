@@ -82,6 +82,8 @@ async function loadArtists() {
    CONFIGURATION — apply URL params to CSS custom properties
    Example: index.html?above-color=%238888aa&below-bg=rgba(0,0,0,0.2)
    Lyrics highlight mode: index.html?highlight-mode=manual  (default: auto)
+   Selected movement: index.html?movement=<artist id>/<work id>/<movement id>
+   (see MOVEMENT IN URL)
 ================================================================ */
 (function applyConfig() {
   const params = new URLSearchParams(window.location.search);
@@ -195,19 +197,56 @@ function buildTree() {
   });
 }
 
-// On page load: select the first movement of the first artist's first work in the
-// tree (skipping any without one), opening their folders to show it
-function selectFirstMovement() {
+// On page load: select the movement named in the URL (see MOVEMENT IN URL), else the
+// first movement of the first artist's first work in the tree (skipping any without
+// one), opening their folders to show it
+function selectInitialMovement() {
+  const entry = movementFromUrl() ?? firstTreeMovement();
+  if (!entry) return;
+  loadMovement(entry.composer, entry.work, entry.data);
+  const movEl = document.querySelector('.tree-movement.active');
+  movEl?.closest('.tree-work').classList.add('open');
+  movEl?.closest('.tree-composer').classList.add('open');
+}
+
+function firstTreeMovement() {
   for (const composer of sortedArtists()) {
     for (const work of sortedWorks(composer)) {
       const movement = work.movements?.[0];
-      if (!movement) continue;
-      loadMovement(composer, work, movement);
-      const movEl = document.querySelector('.tree-movement.active');
-      movEl?.closest('.tree-work').classList.add('open');
-      movEl?.closest('.tree-composer').classList.add('open');
-      return;
+      if (movement) return movementEntry(movement);
     }
+  }
+  return null;
+}
+
+/* ================================================================
+   MOVEMENT IN URL
+   The selected movement is kept in the URL parameter movement, as
+   <artist id>/<work id>/<movement id>, so reloading or sharing the link
+   opens the same movement:
+   index.html?movement=anlun-huang/chinese-requiem/ch2
+================================================================ */
+const MOVEMENT_PARAM = 'movement';
+
+// The flat-list entry of the movement named in the URL, or null
+function movementFromUrl() {
+  const key = new URLSearchParams(location.search).get(MOVEMENT_PARAM);
+  if (!key) return null;
+  const entry = state.allMovements.find(e => movementKey(e.data) === key);
+  if (!entry) console.warn(`No movement "${key}" (URL parameter ${MOVEMENT_PARAM})`);
+  return entry ?? null;
+}
+
+// Rewrite the URL to name the movement, keeping the other parameters and adding no
+// history entry
+function setMovementInUrl(movement) {
+  const params = new URLSearchParams(location.search);
+  params.set(MOVEMENT_PARAM, movementKey(movement));
+  const search = params.toString().replace(/%2F/g, '/');  // keep the key readable
+  try {
+    history.replaceState(history.state, '', `?${search}${location.hash}`);
+  } catch (err) {
+    console.warn('Cannot rewrite the URL:', err.message);
   }
 }
 
@@ -241,6 +280,7 @@ function loadMovement(composer, work, movement, autoplay = false) {
     state.movementIdx  = flatEntry.movementIdx;
   }
   state.lastLyricIdx = -1;
+  setMovementInUrl(movement);
 
   // Highlight active tree node
   document.querySelectorAll('.tree-movement').forEach(el => {
@@ -1225,5 +1265,5 @@ loadArtists().then(() => {
   buildTree();
   updateNavButtons();
   updateTimingPanel();
-  selectFirstMovement();
+  selectInitialMovement();
 });

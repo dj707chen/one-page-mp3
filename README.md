@@ -233,6 +233,7 @@ Add parameters to the page URL. Colors are any CSS color, and `#` must be writte
 | `below-color` | Text color of the lines below the current line | `#7f94b0` |
 | `below-bg` | Background of the lines below the current line | `transparent` |
 | `highlight-mode` | `manual` starts in Manual mode; anything else starts in Auto | `auto` |
+| `movement` | The movement selected on load, as `<artist id>/<work id>/<movement id>` (the `id`s in `artist.js` and `work.js`). The app rewrites it whenever you select a movement, so reloading or sharing the URL opens that movement | the first movement in the tree |
 
 For example:
 

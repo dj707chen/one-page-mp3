@@ -322,7 +322,10 @@ source material only, and the app does not read them.
    - `"time"` is the line's start in seconds, or `null` if the line has not been timed yet.
    - Each time belongs to the row it is on. When you add or remove a line, add or remove its time with it. A new line
      can start as `"time":null`.
-   - Keep the file valid JavaScript: rows are separated by commas, with no comma after the last row.
+   - Each row is a JavaScript object, and everything inside `onePageMp3Timing(...)` must be valid **JSON**: Save
+     writes it with `JSON.stringify`, and **Load** reads it with `JSON.parse`. So put names and strings in double
+     quotes (`"time"`, not `time` or `'time'`), separate rows with commas but put none after the last row, and do not
+     add comments. A file that breaks these rules may still play, but **Load** rejects it.
    - To show a translation beside a line, add `"translation"` to its row. Rows without one leave the right column
      empty:
 

@@ -114,3 +114,38 @@ what's the difference: rest in Your embrace vs rest in Your arm?
 - **Embrace**: names the act of holding. It feels a bit more abstract, more literary, and more about closeness and love than safety.
 
 The Chinese 怀里 literally means "in the bosom" (cf. "Abraham's bosom", Luke 16:22). Both are fair renderings. "Arms" is the more common hymn wording and matches the source translation; "embrace" is a little more intimate. "Bosom" is the most literal but sounds archaic.
+
+---
+
+## Question
+
+Verify if the default 45% left lyrics panel width is taking effect; I want it to be 40% now.
+
+## Answer
+
+Verified in headless Chrome with a fresh profile (nothing in localStorage): the 45% default worked. The columns measured 45% / 55%, and the divider line sat at 45% (its 13px grab area starts 6px to the left, so its box reads 44.5%).
+
+A width saved by dragging the divider (localStorage `onepagemp3.lyricsOriginalWidth`) overrides the CSS default. With 55 stored, the columns measured 55% / 45%. If a browser shows a different split than the default, double-click the divider to clear the saved width.
+
+Changed `--lyrics-original-width` in `common.css` to 40% and re-measured in a fresh profile: 40% / 60%.
+
+---
+
+## Question
+
+The width changed by moving the divider should be temporary, don't save it.
+
+## Answer
+
+Removed the divider's localStorage saving from `app.js`: the `DIVIDER_STORAGE_KEY` constant, `storeOriginalWidth()`, the `restoreOriginalWidth()` startup step, the calls in the drag-end and double-click handlers, and the `draggedPct` variable they needed. Dragging still sets the width for the current page; double-click still resets to the default; reloading the page always starts from `--lyrics-original-width` (40%). Updated the two README passages that said the width is remembered.
+
+Verified in headless Chrome (fresh profile):
+
+| Step | Original / translation |
+|---|---|
+| Fresh load | 40% / 60% |
+| Load with an old saved `55` in localStorage | 40% / 60% (ignored) |
+| Drag the divider to 60% | 60% / 40%, nothing saved |
+| Reload | 40% / 60% |
+
+An old saved value left by the previous version stays in the browser's localStorage but is never read.

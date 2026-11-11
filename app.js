@@ -450,9 +450,9 @@ document.getElementById('btn-maximize').addEventListener('click', e => {
    Drag the line between the original and translation columns to set
    the original's share of the width (DIVIDER_MIN–DIVIDER_MAX percent);
    double-click it to go back to the default (--lyrics-original-width in
-   common.css). The width is remembered in this browser.
+   common.css). A dragged width is not saved: reloading the page restores
+   the default.
 ================================================================ */
-const DIVIDER_STORAGE_KEY = 'onepagemp3.lyricsOriginalWidth';
 const DIVIDER_MIN = 20;
 const DIVIDER_MAX = 80;
 
@@ -463,20 +463,6 @@ function setOriginalWidth(pct) {
   else root.setProperty('--lyrics-original-width', `${pct}%`);
 }
 
-function storeOriginalWidth(pct) {
-  try {
-    if (pct === null) localStorage.removeItem(DIVIDER_STORAGE_KEY);
-    else localStorage.setItem(DIVIDER_STORAGE_KEY, String(pct));
-  } catch { /* storage unavailable: the width lasts until reload */ }
-}
-
-(function restoreOriginalWidth() {
-  try {
-    const pct = parseFloat(localStorage.getItem(DIVIDER_STORAGE_KEY));
-    if (pct >= DIVIDER_MIN && pct <= DIVIDER_MAX) setOriginalWidth(pct);
-  } catch { /* storage unavailable */ }
-})();
-
 // One divider, put back into #lyrics-inner by renderLyrics for bilingual lyrics
 const lyricsDivider = (() => {
   const divider = document.createElement('div');
@@ -484,7 +470,6 @@ const lyricsDivider = (() => {
   divider.setAttribute('role', 'separator');
   divider.setAttribute('aria-orientation', 'vertical');
   divider.title = 'Drag to resize the columns; double-click to reset';
-  let draggedPct = null;
 
   divider.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
@@ -496,19 +481,15 @@ const lyricsDivider = (() => {
     if (!divider.hasPointerCapture(e.pointerId)) return;
     const rect = divider.parentElement.getBoundingClientRect();
     const pct  = (e.clientX - rect.left) / rect.width * 100;
-    draggedPct = Math.round(Math.min(DIVIDER_MAX, Math.max(DIVIDER_MIN, pct)) * 10) / 10;
-    setOriginalWidth(draggedPct);
+    setOriginalWidth(Math.round(Math.min(DIVIDER_MAX, Math.max(DIVIDER_MIN, pct)) * 10) / 10);
   });
   // Drag ended (pointer released or cancelled)
   divider.addEventListener('lostpointercapture', () => {
     divider.classList.remove('dragging');
-    if (draggedPct !== null) storeOriginalWidth(draggedPct);
-    draggedPct = null;
     centerCurrentLine();  // lines re-wrapped, so the current one may have moved
   });
   divider.addEventListener('dblclick', () => {
     setOriginalWidth(null);
-    storeOriginalWidth(null);
     centerCurrentLine();
   });
   return divider;

@@ -12,7 +12,7 @@ onePageMp3Timing({
     {"time":10.802,"text":"赐他们永远", "translation": "Grant them eternal"},
     {"time":19.695,"text":"永远安息，", "translation": "rest in peace forever,"},
     {"time":27.861,"text":"安息在您怀里!", "translation": "rest in Your embrace!"},
-    {"time":43.495,"text":"安息在您怀里。", "translation": "rest in Your embrace."},
+    {"time":43.495,"text":"安息在您怀里。", "translation": "Rest in Your embrace."},
     {"time":54.585,"text":"求主", "translation": "Lord,"},
     {"time":65.863,"text":"赐他们永远", "translation": "grant them eternal"},
     {"time":74.479,"text":"永远安息，", "translation": "rest in peace forever,"},

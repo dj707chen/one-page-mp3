@@ -135,7 +135,7 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
     the movement's `titleTranslation`, `subtitleTranslation` and `voicingTranslation` in `work.js`. Movements without
     translations keep one full-width column.
   - **Divider.** Drag the line between the two columns to change their widths (from 20% to 80% for the original).
-    It turns gold under the mouse. Double-click it to go back to 40%. The width is remembered in this browser.
+    It turns gold under the mouse. Double-click it to go back to 40%. The new width lasts until the page is reloaded.
   - **Picture.** The movement's picture (`thumbnail`) covers the lyrics until playback starts, with "▶ Click to play".
     It is hidden while the music plays so it never makes the lyrics hard to read.
 - **Bottom control section.** These are the playback buttons: ◀◀ rewind to the beginning, −15s, ▶ / ❚❚
@@ -224,7 +224,7 @@ Three settings have no URL parameter yet, so you change them in the source:
 - **Current line colors.** `--lyrics-current-color`, `--lyrics-current-bg` and `--lyrics-current-border` at the top
   of [common.css](common.css).
 - **Default width of the original-lyrics column** when a movement has translations. `--lyrics-original-width` at the
-  top of [common.css](common.css), `40%`. The translation column gets the rest. To change it for one browser only,
+  top of [common.css](common.css), `40%`. The translation column gets the rest. To change it only until the page is reloaded,
   [drag the divider](#screen-layout) instead.
 - **Number of lines above and below.** This is the `4` in `highlightLyricLine()` in [app.js](app.js). Lines further
   away are faded.

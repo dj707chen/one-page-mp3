@@ -11,7 +11,7 @@
   --lyrics-current-color: #ffffff;
   --lyrics-current-bg: rgba(201, 162, 39, 0.12);
   --lyrics-current-border: #c9a227;
-  --lyrics-original-width: 45%;  /* bilingual lyrics: original column (default; drag the divider to change) */
+  --lyrics-original-width: 40%;  /* bilingual lyrics: original column (default; drag the divider to change) */
 
   --bg-primary:   #0d1117;
   --bg-secondary: #161b22;

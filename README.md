@@ -415,6 +415,7 @@ its artist's `workFiles`, and a new movement only to its work's `movements`.
 ```javascript
 artistFiles: [
   "assets/AnlunHuang/artist.js",
+  "assets/Handel/artist.js",
   "assets/Mahler/artist.js",
   "assets/Mozart/artist.js",
   "assets/<Artist>/artist.js"
@@ -480,6 +481,13 @@ assets/
       Chapter1..8.jpg      pictures
       Chapter1..8.timing.js  lyrics + timing
       Lyrics.txt, *.pdf, *.md  source material and notes (not read by the app)
+  Handel/                  亨德尔 — Messiah (弥赛亚, HWV 56), 9 movements: one per band of the 1966 Philips LP set
+    artist.js              (Colin Davis, London Symphony Orchestra), from the Internet Archive
+    Messiah/
+      work.js
+      Chapter1..9.mp3      audio: Overture, then Nos. 1–52 in 8 tracks
+      Handel.jpg           picture shared by all movements (Thomas Hudson's 1749 portrait, public domain)
+      Chapter1..9.timing.js  lyrics: English libretto + 和合本 translation, a heading line per number
   Mahler/, Mozart/         example entries that show the layout for more artists
                            (their audio and lyrics are placeholder copies of Chinese Requiem I)
 workItems/                 work items: draft / todo / wip / completed / blocked / archived

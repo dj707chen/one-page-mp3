@@ -21,6 +21,7 @@ const APP_DATA = {
   version: "1.0",
   artistFiles: [
     "assets/AnlunHuang/artist.js",
+    "assets/Handel/artist.js",
     "assets/Mahler/artist.js",
     "assets/Mozart/artist.js"
     /* Add more artists' artist.js files here */

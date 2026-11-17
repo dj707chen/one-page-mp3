@@ -52,7 +52,7 @@
       </div>
       <div id="audio-options" role="group" aria-label="Audio">
         <span id="audio-options-label">Audio:</span>
-        <label title="Silence the audio; it keeps playing, so the lyrics follow it as usual"><input type="checkbox" id="chk-mute"> Mute</label>
+        <label title="Silence the audio; it keeps playing, so the lyrics follow it as usual"><input type="checkbox" id="chk-mute" checked> Mute</label>
       </div>
     </div>
   </aside>
@@ -114,7 +114,8 @@
   </main>
 </div>
 
-<audio id="audio" preload="metadata"></audio>
+<!-- muted: the audio starts silent, until the Mute check box is unchecked -->
+<audio id="audio" preload="metadata" muted></audio>
 
 <script src="app.js"></script>
 </body>

@@ -13,7 +13,9 @@
    If any line has a translation, the lyrics panel shows two columns:
    each line's original text beside its translation, highlighted together
    (see BILINGUAL LYRICS DIVIDER), unless the Original or Translation
-   check box is unchecked (see LYRICS SHOWN).
+   check box is unchecked (see LYRICS SHOWN). The work's language and
+   translationLanguage tell which column is the Chinese one, which gets
+   the narrower share of the width.
    Auto mode highlights by the timing in that file (or recorded in this
    browser), else by linear interpolation (approximate sync).
 ================================================================ */
@@ -407,6 +409,8 @@ function renderLyrics(movement, keepHighlight = false) {
   const bilingual       = hasTranslation && showOriginal && showTranslation;
   const translationOnly = hasTranslation && !showOriginal;
   inner.classList.toggle('bilingual', bilingual);
+  // The Chinese column keeps its width on either side (see BILINGUAL LYRICS DIVIDER)
+  inner.classList.toggle('chinese-translation', bilingual && translationIsChinese(currentWork()));
   if (bilingual) inner.appendChild(lyricsDivider);
 
   const topSpacer = document.createElement('div');
@@ -620,12 +624,14 @@ lyricsShownBoxes.forEach(box => {
    MUTE
    The Mute check box silences the audio without stopping it: playback
    goes on, so the lyrics, the progress bar and timing recording follow
-   it as usual. It stays on from one movement to the next. Not saved:
-   reloading the page unchecks it.
+   it as usual. The audio is muted by default (the muted attribute of
+   <audio> in index.html): uncheck the box to hear it. The box's state
+   stays from one movement to the next. Not saved: reloading the page
+   checks it again.
 ================================================================ */
 const muteBox = document.getElementById('chk-mute');
 
-muteBox.checked = audio.muted;  // a reload can bring back a checked box (Firefox)
+muteBox.checked = audio.muted;  // a reload can bring back an unchecked box (Firefox)
 
 muteBox.addEventListener('change', () => {
   audio.muted = muteBox.checked;
@@ -634,20 +640,31 @@ muteBox.addEventListener('change', () => {
 
 /* ================================================================
    BILINGUAL LYRICS DIVIDER
+   The width belongs to the Chinese column, on whichever side it is: the
+   original (left) column when the work's language is Chinese, the
+   translation (right) column when its translationLanguage is. With no
+   Chinese column it is the original's.
    Drag the line between the original and translation columns to set
-   the original's share of the width (DIVIDER_MIN–DIVIDER_MAX percent);
-   double-click it to go back to the default (--lyrics-original-width in
+   that column's share of the width (DIVIDER_MIN–DIVIDER_MAX percent);
+   double-click it to go back to the default (--lyrics-chinese-width in
    common.css). A dragged width is not saved: reloading the page restores
    the default.
 ================================================================ */
 const DIVIDER_MIN = 20;
 const DIVIDER_MAX = 80;
 
-// pct: the original column's percent of the lyrics width, or null for the CSS default
-function setOriginalWidth(pct) {
+// True when the Chinese lyrics are the work's translations (the right column): its
+// translationLanguage is Chinese ("zh", "zh-Hant", ...) and its language is not
+function translationIsChinese(work) {
+  const isChinese = language => /^zh\b/i.test(language ?? '');
+  return isChinese(work?.translationLanguage) && !isChinese(work?.language);
+}
+
+// pct: the Chinese column's percent of the lyrics width, or null for the CSS default
+function setChineseWidth(pct) {
   const root = document.documentElement.style;
-  if (pct === null) root.removeProperty('--lyrics-original-width');
-  else root.setProperty('--lyrics-original-width', `${pct}%`);
+  if (pct === null) root.removeProperty('--lyrics-chinese-width');
+  else root.setProperty('--lyrics-chinese-width', `${pct}%`);
 }
 
 // One divider, put back into #lyrics-inner by renderLyrics for bilingual lyrics
@@ -666,9 +683,12 @@ const lyricsDivider = (() => {
   });
   divider.addEventListener('pointermove', e => {
     if (!divider.hasPointerCapture(e.pointerId)) return;
-    const rect = divider.parentElement.getBoundingClientRect();
-    const pct  = (e.clientX - rect.left) / rect.width * 100;
-    setOriginalWidth(Math.round(Math.min(DIVIDER_MAX, Math.max(DIVIDER_MIN, pct)) * 10) / 10);
+    const inner = divider.parentElement;
+    const rect  = inner.getBoundingClientRect();
+    // The pointer is at the left column's right edge; the Chinese column may be the right one
+    const left  = Math.min(DIVIDER_MAX, Math.max(DIVIDER_MIN, (e.clientX - rect.left) / rect.width * 100));
+    const pct   = inner.classList.contains('chinese-translation') ? 100 - left : left;
+    setChineseWidth(Math.round(pct * 10) / 10);
   });
   // Drag ended (pointer released or cancelled)
   divider.addEventListener('lostpointercapture', () => {
@@ -676,7 +696,7 @@ const lyricsDivider = (() => {
     centerCurrentLine();  // lines re-wrapped, so the current one may have moved
   });
   divider.addEventListener('dblclick', () => {
-    setOriginalWidth(null);
+    setChineseWidth(null);
     centerCurrentLine();
   });
   return divider;

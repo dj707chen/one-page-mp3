@@ -4,6 +4,8 @@ onePageMp3Work({
   title: "Symphony No. 2",
   titleTranslation: "第2交响曲",
   titleSort: "Mahler: Symphony No. 2",
+  language: "en",
+  translationLanguage: "zh",
   year: 1902,
   opusNumber: "Op. 63",
   premiered: "Berlin, December 1903",

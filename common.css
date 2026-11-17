@@ -11,7 +11,8 @@
   --lyrics-current-color: #ffffff;
   --lyrics-current-bg: rgba(201, 162, 39, 0.12);
   --lyrics-current-border: #c9a227;
-  --lyrics-original-width: 40%;  /* bilingual lyrics: original column (default; drag the divider to change) */
+  --lyrics-chinese-width: 40%;   /* bilingual lyrics: the Chinese column (default; drag the divider to change) */
+  --lyrics-original-width: var(--lyrics-chinese-width);  /* the left column (see "Bilingual lyrics" below) */
 
   --bg-primary:   #0d1117;
   --bg-secondary: #161b22;
@@ -402,6 +403,15 @@ body {
    is one row holding both, so they share one highlight and stay level. The cells, not
    the row, carry the side padding, so the column boundary lands on the divider. */
 #lyrics-inner.bilingual { position: relative; }
+
+/* The Chinese column is --lyrics-chinese-width wide on whichever side it is. On the left
+   (the original is Chinese, or neither is) that is the left column's width, as set in
+   :root. On the right (.chinese-translation, set by renderLyrics from the work's
+   language / translationLanguage) the left column gets the rest. Set on #right-pane so
+   the top bar titles split the same way. */
+#right-pane:has(#lyrics-inner.chinese-translation) {
+  --lyrics-original-width: calc(100% - var(--lyrics-chinese-width));
+}
 
 /* The divider: a wide, invisible grab area around a 1px line */
 .lyrics-divider {

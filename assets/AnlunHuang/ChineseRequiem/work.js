@@ -4,6 +4,8 @@ onePageMp3Work({
   title: "安魂曲",
   titleTranslation: "Requiem",
   titleSort: "Chinese Requiem",
+  language: "zh",
+  translationLanguage: "en",
   year: 2004,
   opusNumber: "Op. 63",
   premiered: "Toronto, May 2004",

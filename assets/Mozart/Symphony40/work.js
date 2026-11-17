@@ -4,6 +4,8 @@ onePageMp3Work({
   title: "Symphony No. 40",
   titleTranslation: "交响曲第40号",
   titleSort: "Symphony No. 40",
+  language: "en",
+  translationLanguage: "zh",
   year: 1788,
   opusNumber: "K. 550",
   premiered: "Vienna, 1788",

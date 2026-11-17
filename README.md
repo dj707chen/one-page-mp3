@@ -111,7 +111,7 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
 │ Manual] ⤢ Max │                                                             │
 │ Show: ☑ Orig. │                                                             │
 │   ☑ Transl.   │                                                             │
-│ Audio: ☐ Mute │                                                             │
+│ Audio: ☑ Mute │                                                             │
 └───────────────┴─────────────────────────────────────────────────────────────┘
 ```
 
@@ -126,10 +126,11 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
   - **⤢ Maximize** (next to it) shows only the lyrics. See [Maximized lyrics](#maximized-lyrics).
   - **Show: ☑ Original ☑ Translation** (under them) chooses which lyrics the panel shows, and which titles the top
     bar shows. See **Translation** below.
-  - **Audio: ☐ Mute** (the last row) silences the audio without stopping it. The music keeps playing with no sound,
+  - **Audio: ☑ Mute** (the last row) silences the audio without stopping it. The music keeps playing with no sound,
     so the lyrics are highlighted, the progress bar moves and the keyboard works exactly as usual. This suits showing
-    the timed lyrics while the music is performed live. It stays on when you go to another movement, and is not
-    saved: reloading the page unchecks it.
+    the timed lyrics while the music is performed live. It is checked by default, so the player starts silent:
+    **uncheck it to hear the music**. Your choice stays when you go to another movement, and is not saved: reloading
+    the page checks it again.
 - **Top control section**
   - **◀ Prev / Next ▶** go to the previous or next movement. If music is playing, the new movement starts playing.
   - **Now playing** shows the work title and the movement number and title, then both translations (if any)
@@ -145,8 +146,11 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
     centered vertically.
   - **Translation.** If any line of the movement has a `"translation"` (see
     [Flow: modifying lyrics](#flow-modifying-lyrics)), the panel is divided into two columns: the original lyrics on
-    the left (40% of the width) and the translation on the right (the other 60%, since English usually needs more
-    room). Each line and its translation share one row, so they are highlighted
+    the left and the translation on the right. The column with the Chinese lyrics gets 40% of the width and the other
+    column the remaining 60%, since Chinese usually needs less room. The work's `language` and `translationLanguage`
+    in `work.js` tell which column that is: for 安魂曲 (`language: "zh"`) the left one, for Messiah
+    (`translationLanguage: "zh"`) the right one. If neither is Chinese, the original gets the 40%.
+    Each line and its translation share one row, so they are highlighted
     together and stay level even when one of them wraps. The translation column has its own movement heading, made from
     the movement's `titleTranslation`, `subtitleTranslation` and `voicingTranslation` in `work.js`. Movements without
     translations keep one full-width column.
@@ -156,8 +160,10 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
     does a movement with no translations at all. At least one box must stay checked, so the last checked box is
     disabled. The highlighted line stays the same when you change them. The choice applies to every movement and is
     not saved: reloading the page checks both again.
-  - **Divider.** Drag the line between the two columns to change their widths (from 20% to 80% for the original).
-    It turns gold under the mouse. Double-click it to go back to 40%. The new width lasts until the page is reloaded.
+  - **Divider.** Drag the line between the two columns to change their widths (from 20% to 80% for each column).
+    It turns gold under the mouse. Double-click it to go back to 40% for the Chinese column. The new width belongs to
+    the Chinese column, so it keeps it when you go to a work that has its Chinese lyrics on the other side. It lasts
+    until the page is reloaded.
   - **Picture.** The movement's picture (`thumbnail`) covers the lyrics until playback starts, with "▶ Click to play".
     It is hidden while the music plays so it never makes the lyrics hard to read.
 - **Bottom control section.** These are the playback buttons: ◀◀ rewind to the beginning, −15s, ▶ / ❚❚
@@ -251,8 +257,8 @@ Three settings have no URL parameter yet, so you change them in the source:
 
 - **Current line colors.** `--lyrics-current-color`, `--lyrics-current-bg` and `--lyrics-current-border` at the top
   of [common.css](common.css).
-- **Default width of the original-lyrics column** when a movement has translations. `--lyrics-original-width` at the
-  top of [common.css](common.css), `40%`. The translation column gets the rest. To change it only until the page is reloaded,
+- **Default width of the Chinese-lyrics column** when a movement has translations. `--lyrics-chinese-width` at the
+  top of [common.css](common.css), `40%`. The other column gets the rest. To change it only until the page is reloaded,
   [drag the divider](#screen-layout) instead.
 - **Number of lines above and below.** This is the `4` in `highlightLyricLine()` in [app.js](app.js). Lines further
   away are faded.
@@ -391,6 +397,8 @@ onePageMp3Work({
   title: "安魂曲",                 // shown in the tree, top bar and info pane
   titleTranslation: "Requiem",    // top bar: "安魂曲 I. 永远安息  Requiem I. Eternal Rest" (optional)
   titleSort: "Chinese Requiem",   // tree sort key (optional; defaults to title)
+  language: "zh",                 // language of the lyrics' "text"; the "zh" column gets 40% of the lyrics width
+  translationLanguage: "en",      // language of the lyrics' "translation"
   year: 2004,                     // info pane: "title Op. 63 (2004)"
   opusNumber: "Op. 63",
   premiered: "Toronto, May 2004", // info pane: "Premiere: Toronto, May 2004"
@@ -462,7 +470,7 @@ on), and the rest of the app keeps working.
 | File | Wrapper call | Holds | Loaded |
 |---|---|---|---|
 | `assets/<Artist>/artist.js` | `onePageMp3Artist({...})` | Artist: id, name, nameSort, bio, workFiles | At startup, from `APP_DATA.artistFiles` |
-| `assets/<Artist>/<Work>/work.js` | `onePageMp3Work({...})` | Work: id, title, titleSort, year, opusNumber, premiered, description, movements | At startup, from the artist's `workFiles` |
+| `assets/<Artist>/<Work>/work.js` | `onePageMp3Work({...})` | Work: id, title, titleSort, language, translationLanguage, year, opusNumber, premiered, description, movements | At startup, from the artist's `workFiles` |
 | `<mp3 name>.timing.js` | `onePageMp3Timing({...})` | The movement's lyrics, one `{time, text, translation}` per line (`translation` optional) | When the movement is first selected |
 
 Each file contains one call to a function that `app.js` defines, so it can be loaded with a `<script>` tag. This works

@@ -4,6 +4,8 @@ onePageMp3Work({
   title: "Messiah",
   titleTranslation: "弥赛亚",
   titleSort: "Messiah",
+  language: "en",
+  translationLanguage: "zh",
   year: 1741,
   opusNumber: "HWV 56",
   premiered: "Dublin, 13 April 1742",

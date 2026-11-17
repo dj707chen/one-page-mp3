@@ -84,7 +84,7 @@ async function loadArtists() {
 /* ================================================================
    CONFIGURATION — apply URL params to CSS custom properties
    Example: index.html?above-color=%238888aa&below-bg=rgba(0,0,0,0.2)
-   Lyrics highlight mode: index.html?highlight-mode=manual  (default: auto)
+   Lyrics highlight mode: index.html?highlight-mode=auto  (default: manual)
    Selected movement: index.html?movement=<artist id>/<work id>/<movement id>
    (see MOVEMENT IN URL), at a position in whole seconds: &t=83 (see POSITION IN URL)
 ================================================================ */
@@ -113,8 +113,8 @@ const state = {
   lastLyricIdx: -1,
   allMovements: [],  // flat list for prev/next
   lyricsShown:  { original: true, translation: true },  // see LYRICS SHOWN
-  highlightMode: new URLSearchParams(window.location.search).get('highlight-mode') === 'manual'
-                 ? 'manual' : 'auto'
+  highlightMode: new URLSearchParams(window.location.search).get('highlight-mode') === 'auto'
+                 ? 'auto' : 'manual'
 };
 
 const audio = document.getElementById('audio');

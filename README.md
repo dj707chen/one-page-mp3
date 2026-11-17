@@ -122,7 +122,7 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
   - **LYRICS TIMING panel.** Docked near the bottom of the pane and collapsed by default; open it with its `^` button.
     See [Flow: timing the lyrics](#flow-timing-the-lyrics).
   - **Lyrics: Auto | Manual** (below the LYRICS TIMING panel) switches the
-    [highlight mode](#lyrics-highlight-modes).
+    [highlight mode](#lyrics-highlight-modes). The player starts in Manual.
   - **⤢ Maximize** (next to it) shows only the lyrics. See [Maximized lyrics](#maximized-lyrics).
   - **Show: ☑ Original ☑ Translation** (under them) chooses which lyrics the panel shows, and which titles the top
     bar shows. See **Translation** below.
@@ -179,6 +179,10 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
 2. Click the picture, or press ▶ or Space, to play.
 3. When a movement ends, the next one starts automatically.
 
+The player starts set up for a live performance: muted, and in Manual mode, where you move the highlight yourself.
+To listen to a recording with the highlight following it, uncheck **Mute** and click **Auto** at the bottom of the
+left pane (or open the page with `?highlight-mode=auto`).
+
 Prev, Next and auto-advance use the **data order**: artists as listed in `APP_DATA.artistFiles` in `app.js`, works
 as listed in each artist's `workFiles`, then movements as listed in `work.js`. This order can differ from the
 alphabetical order of the tree.
@@ -187,10 +191,10 @@ If a movement's MP3 file is missing, its lyrics still display. The browser conso
 
 ## Lyrics highlight modes
 
-Choose a mode with **Lyrics: Auto | Manual** at the bottom of the left pane, or start in Manual with the URL parameter
-`?highlight-mode=manual`.
+Choose a mode with **Lyrics: Auto | Manual** at the bottom of the left pane. The player starts in Manual; to start in
+Auto, add the URL parameter `?highlight-mode=auto`.
 
-| | **Auto** (default) | **Manual** |
+| | **Auto** | **Manual** (default) |
 |---|---|---|
 | What moves the highlight | The audio position | The operator: ↓ / → for the next line, ↑ / ← for the previous one, or a click on any line |
 | Clicking a lyric line | Jumps the audio to that line's start (see below) | Highlights that line and jumps the audio to its start (not while recording) |
@@ -243,14 +247,14 @@ Add parameters to the page URL. Colors are any CSS color, and `#` must be writte
 | `above-bg` | Background of the lines above the current line | `transparent` |
 | `below-color` | Text color of the lines below the current line | `#7f94b0` |
 | `below-bg` | Background of the lines below the current line | `transparent` |
-| `highlight-mode` | `manual` starts in Manual mode; anything else starts in Auto | `auto` |
+| `highlight-mode` | `auto` starts in Auto mode; anything else starts in Manual | `manual` |
 | `movement` | The movement selected on load, as `<artist id>/<work id>/<movement id>` (the `id`s in `artist.js` and `work.js`). The app rewrites it whenever you select a movement, so reloading or sharing the URL opens that movement | the first movement in the tree |
 | `t` | The audio position of the `movement` above, in whole seconds (rounded down), e.g. `83` (used only with `movement`). The app rewrites it about once a second while the audio plays or you seek, so reloading or sharing the URL continues from there; it is removed when you select another movement | `0` |
 
 For example:
 
 ```
-index.html?above-color=%238888aa&below-color=%23aaaaaa&below-bg=rgba(0,0,0,0.2)&highlight-mode=manual
+index.html?above-color=%238888aa&below-color=%23aaaaaa&below-bg=rgba(0,0,0,0.2)&highlight-mode=auto
 ```
 
 Three settings have no URL parameter yet, so you change them in the source:

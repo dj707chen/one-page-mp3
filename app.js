@@ -613,9 +613,22 @@ function setLyricsMaximized(on) {
   const app = document.getElementById('app');
   if (app.classList.contains('lyrics-maximized') === on) return;
   app.classList.toggle('lyrics-maximized', on);
+  // Also full screen at browser window level (not available everywhere, e.g. iPhone Safari)
+  try {
+    if (on && !document.fullscreenElement && document.documentElement.requestFullscreen) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else if (!on && document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+  } catch (_) { /* ignore */ }
   // Re-center after the lyric font-size transition (0.3s) settles
   setTimeout(centerCurrentLine, 350);
 }
+
+// The browser's own Esc (or F11-style exit) leaves full screen: leave maximized too
+document.addEventListener('fullscreenchange', () => {
+  if (!document.fullscreenElement) setLyricsMaximized(false);
+});
 
 document.getElementById('btn-maximize').addEventListener('click', e => {
   e.currentTarget.blur();

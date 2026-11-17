@@ -371,7 +371,7 @@ body {
   padding: 4px 14px;
   border-radius: 4px;
   border-left: 3px solid transparent;
-  font-size: 1.95rem;
+  font-size: calc(1.95rem * var(--lyrics-font-scale, 1));
   line-height: 1.4;
   white-space: pre-wrap;  /* keep a line's "\n" and spaces as written (e.g. indent after "\n") */
   cursor: pointer;
@@ -655,7 +655,7 @@ body {
 #app.lyrics-maximized #btn-restore { display: inline-block; }
 #app.lyrics-maximized #right-pane { grid-template-rows: auto 1fr; }
 #app.lyrics-maximized .lyric-meta { font-size: 1rem; }
-#app.lyrics-maximized .lyric-line { font-size: 2.7rem; }
+#app.lyrics-maximized .lyric-line { font-size: calc(2.7rem * var(--lyrics-font-scale, 1)); }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 5px; }
@@ -683,3 +683,8 @@ body {
   #info-pane { max-height: 64px; padding: 6px 10px; gap: 10px; font-size: 0.85em; }
   #app.lyrics-maximized #right-pane { grid-template-rows: auto minmax(0, 1fr); }
 }
+
+/* Lyrics font size adjuster (next to the Mute box) */
+#font-size-ctl { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
+#font-size-ctl .ctrl-btn { padding: 1px 7px; font-size: 0.76rem; }
+#font-size-value { min-width: 3em; text-align: center; font-size: 0.72rem; color: var(--text-secondary); }

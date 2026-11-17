@@ -672,6 +672,26 @@ muteBox.addEventListener('change', () => {
 });
 
 /* ================================================================
+   LYRICS FONT SIZE
+   A+ / A- scale the lyrics (--lyrics-font-scale, 60%-250%, steps of 10%);
+   click the percentage to reset. Not saved: reloading resets it.
+================================================================ */
+(function () {
+  let pct = 100;
+  const label = document.getElementById('font-size-value');
+  function apply(v) {
+    pct = Math.max(60, Math.min(250, v));
+    document.documentElement.style.setProperty('--lyrics-font-scale', pct / 100);
+    label.textContent = pct + '%';
+  }
+  [['btn-font-down', -10], ['btn-font-up', 10]].forEach(([id, d]) => {
+    const b = document.getElementById(id);
+    b.addEventListener('click', () => { apply(pct + d); b.blur(); });
+  });
+  label.addEventListener('click', () => apply(100));
+})();
+
+/* ================================================================
    BILINGUAL LYRICS DIVIDER
    The width belongs to the Chinese column, on whichever side it is: the
    original (left) column when the work's language is Chinese, the

@@ -617,6 +617,22 @@ lyricsShownBoxes.forEach(box => {
 });
 
 /* ================================================================
+   MUTE
+   The Mute check box silences the audio without stopping it: playback
+   goes on, so the lyrics, the progress bar and timing recording follow
+   it as usual. It stays on from one movement to the next. Not saved:
+   reloading the page unchecks it.
+================================================================ */
+const muteBox = document.getElementById('chk-mute');
+
+muteBox.checked = audio.muted;  // a reload can bring back a checked box (Firefox)
+
+muteBox.addEventListener('change', () => {
+  audio.muted = muteBox.checked;
+  muteBox.blur();  // so Space / arrow keys keep controlling playback and lyrics
+});
+
+/* ================================================================
    BILINGUAL LYRICS DIVIDER
    Drag the line between the original and translation columns to set
    the original's share of the width (DIVIDER_MIN–DIVIDER_MAX percent);

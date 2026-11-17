@@ -111,6 +111,7 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
 │ Manual] ⤢ Max │                                                             │
 │ Show: ☑ Orig. │                                                             │
 │   ☑ Transl.   │                                                             │
+│ Audio: ☐ Mute │                                                             │
 └───────────────┴─────────────────────────────────────────────────────────────┘
 ```
 
@@ -125,6 +126,10 @@ time, or Save the recording to its `.timing.js` file (see [Flow: timing the lyri
   - **⤢ Maximize** (next to it) shows only the lyrics. See [Maximized lyrics](#maximized-lyrics).
   - **Show: ☑ Original ☑ Translation** (under them) chooses which lyrics the panel shows, and which titles the top
     bar shows. See **Translation** below.
+  - **Audio: ☐ Mute** (the last row) silences the audio without stopping it. The music keeps playing with no sound,
+    so the lyrics are highlighted, the progress bar moves and the keyboard works exactly as usual. This suits showing
+    the timed lyrics while the music is performed live. It stays on when you go to another movement, and is not
+    saved: reloading the page unchecks it.
 - **Top control section**
   - **◀ Prev / Next ▶** go to the previous or next movement. If music is playing, the new movement starts playing.
   - **Now playing** shows the work title and the movement number and title, then both translations (if any)

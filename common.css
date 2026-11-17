@@ -34,6 +34,7 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
@@ -663,3 +664,22 @@ body {
 
 /* Top/Nav buttons */
 #top-controls .ctrl-btn { padding: 7px 14px; font-size: 0.82rem; }
+
+/* ─── Smartphone layout (not maximized): navigation stacked above the player ─── */
+@media (max-width: 700px) {
+  #app { grid-template-columns: 1fr; grid-template-rows: minmax(0, 32%) minmax(0, 1fr); }
+  #app.lyrics-maximized { grid-template-rows: minmax(0, 1fr); }
+  #left-pane { border-right: none; border-bottom: 1px solid var(--border); overflow-y: auto; }
+  #left-header { display: none; }
+  #composer-tree { flex: none; overflow: visible; }
+  #view-panel { position: sticky; bottom: 0; background: var(--bg-nav); z-index: 2; }
+
+  #right-pane { grid-template-rows: auto minmax(0, 1fr) auto auto; }
+  #top-controls { padding: 6px 8px; gap: 6px; }
+  #top-controls .ctrl-btn { padding: 7px 10px; }
+  #bottom-controls { flex-wrap: wrap; justify-content: center; padding: 6px 8px; gap: 6px; }
+  #progress-bar { flex: 1 1 100%; order: -1; }
+  #time-display { min-width: 0; text-align: center; }
+  #info-pane { max-height: 64px; padding: 6px 10px; gap: 10px; font-size: 0.85em; }
+  #app.lyrics-maximized #right-pane { grid-template-rows: auto minmax(0, 1fr); }
+}

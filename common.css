@@ -336,6 +336,8 @@ body {
   background: var(--bg-primary);
 }
 
+#lyrics-container[data-mode="manual"] { touch-action: none; }  /* swipes step the lines, see SWIPE in app.js */
+
 #lyrics-container {
   height: 100%;
   overflow-y: auto;

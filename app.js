@@ -541,6 +541,7 @@ function setHighlightMode(mode) {
     btn.setAttribute('aria-pressed', on);
   });
   document.getElementById('manual-hint').hidden = mode !== 'manual';
+  document.getElementById('lyrics-container').dataset.mode = mode;  // swipes only in manual (see SWIPE)
 
   // Recording captures manual selections only
   if (mode !== 'manual' && timing.recording) setRecording(false);
@@ -566,6 +567,33 @@ function selectLyricLine(idx) {
   highlightLyricLine(idx);
   recordLineTime(idx, prevIdx);
 }
+
+/* ================================================================
+   SWIPE
+   Touch screens have no arrow keys, so in manual mode a swipe on the lyrics
+   steps the highlight like them: up or left = next line (↓ →), down or
+   right = previous (↑ ←). A tap on a line still selects it. The lyrics
+   do not scroll by touch in manual mode (touch-action: none in
+   common.css); the highlighted line is kept centered anyway.
+================================================================ */
+const SWIPE_MIN = 40;  // px
+(() => {
+  const container = document.getElementById('lyrics-container');
+  let start = null;
+  container.addEventListener('pointerdown', e => {
+    start = e.pointerType === 'touch' && e.isPrimary && !e.target.closest('.lyrics-divider')
+      ? { x: e.clientX, y: e.clientY } : null;
+  });
+  container.addEventListener('pointercancel', () => { start = null; });
+  container.addEventListener('pointerup', e => {
+    if (!start || state.highlightMode !== 'manual') { start = null; return; }
+    const dx = e.clientX - start.x, dy = e.clientY - start.y;
+    start = null;
+    if (Math.max(Math.abs(dx), Math.abs(dy)) < SWIPE_MIN) return;  // a tap
+    const delta = Math.abs(dy) >= Math.abs(dx) ? (dy < 0 ? 1 : -1) : (dx < 0 ? 1 : -1);
+    stepLyricLine(delta);
+  });
+})();
 
 document.querySelectorAll('#mode-toggle .ctrl-btn').forEach(btn => {
   btn.addEventListener('click', () => {

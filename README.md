@@ -213,6 +213,10 @@ Clicking a lyric line (in either mode) jumps the audio to where that line starts
 a time is placed evenly between the nearest timed lines before and after it, or the start and end of the audio where
 there are none. With no times at all, that is the same even spread as rule 2.
 
+On a touch screen, Manual mode has no arrow keys, so **swipe** on the lyrics instead: up or left for the next
+line, down or right for the previous one (at least 40 px). Tapping a line still highlights it. The lyrics do not
+scroll by touch in Manual mode; the highlighted line is kept centered.
+
 In Manual mode, a hint (`↓→ next ↑← back`) shows in the corner of the lyrics. The movement starts with no line
 highlighted, and the first ↓ highlights line 1. Holding a key down advances only one line. ◀◀ (rewind to the
 beginning) clears the highlight. Stepping through lines also hides the picture, so lyrics can be shown without any

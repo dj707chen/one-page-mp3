@@ -650,7 +650,8 @@ body {
 #app.lyrics-maximized #left-pane,
 #app.lyrics-maximized #bottom-controls,
 #app.lyrics-maximized #info-pane,
-#app.lyrics-maximized #top-controls > :not(#now-playing) { display: none; }
+#app.lyrics-maximized #top-controls > :not(#now-playing):not(#btn-restore) { display: none; }
+#app.lyrics-maximized #btn-restore { display: inline-block; }
 #app.lyrics-maximized #right-pane { grid-template-rows: auto 1fr; }
 #app.lyrics-maximized .lyric-meta { font-size: 1rem; }
 #app.lyrics-maximized .lyric-line { font-size: 2.7rem; }

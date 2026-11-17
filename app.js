@@ -622,6 +622,11 @@ document.getElementById('btn-maximize').addEventListener('click', e => {
   setLyricsMaximized(true);
 });
 
+document.getElementById('btn-restore').addEventListener('click', e => {
+  e.currentTarget.blur();
+  setLyricsMaximized(false);
+});
+
 /* ================================================================
    LYRICS SHOWN
    The Original / Translation check boxes: both checked shows the two

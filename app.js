@@ -686,14 +686,14 @@ muteBox.addEventListener('change', () => {
 
 /* ================================================================
    LYRICS FONT SIZE
-   A+ / A- scale the lyrics (--lyrics-font-scale, 60%-250%, steps of 10%);
+   A+ / A- scale the lyrics (--lyrics-font-scale, 10%-250%, steps of 10%);
    click the percentage to reset. Not saved: reloading resets it.
 ================================================================ */
 (function () {
   let pct = 100;
   const label = document.getElementById('font-size-value');
   function apply(v) {
-    pct = Math.max(60, Math.min(250, v));
+    pct = Math.max(10, Math.min(250, v));
     document.documentElement.style.setProperty('--lyrics-font-scale', pct / 100);
     label.textContent = pct + '%';
   }
